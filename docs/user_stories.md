@@ -45,3 +45,24 @@ User Stories and Exceptions
     - The request will return an error and notify the user that the card is not in their collection.
   - The user tries to add more cards than the allowed deck size.
     - The request will return an error and tell the user to remove cards before adding new ones.
+
+7: As an irresponsible whale, I want to buy one type of pack continuously until I can get the card I want. (Buy certain pack until obtained card)
+- Exceptions:
+  - The user tries to buy a pack but does not have enough coins.
+    - The request will return an error and inform the user that they do not have sufficient coins.
+
+8: As a collaborative collector, I want to trade a card to my friend in exchange for one of their cards which I want. (Trade with friend)
+- Exceptions:
+  - The user puts up a card for trade that they do not own.
+    - The request will return an error and notify the user that the card is not in their collection.
+  - The user tries to trade with a user that does not exist.
+    - The request will return an error and inform the user that the specified user does not exist.
+  - The user tries to trade with a user that is not on their friends list.
+    - The request will return an error and inform the user that they are not friends with the specified user.
+  - The user has no cards to trade. (Empty collection)
+    - The request will return an error, and tell the user their collection is empty.
+
+9: As a wily merchant, I want to understand the value of my collection. Therefore, I want to know the rarity and market price of all my cards together. (View collection value)
+- Exceptions:
+  - The user has no cards to view. (Empty list)
+    - Displays a message informing the user that they have no cards to view.
