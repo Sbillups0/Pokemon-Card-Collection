@@ -8,10 +8,10 @@ API Specification
    - Returns information related to the card_name passed into the endpoint. (Type, Cost, Quantity, etc)
 4. Display/Put Card
    - Adds a card to the user's display if they have space and have it in their collection.
-5. Sell/Put All Cards
+5. Sell All Cards
    - Sells entire collection, adding coins to the user's inventory
    - Additional information passed can be used to sell below a certain price threshold. (Sell_All_Cards(100) -> Sell all cards less than 100 coins)
-6. Sell/Put Card
+6. Sell Card
    - Sells an individual card based on the provided card_name, adding coins to the user's inventory. (As long as the user has one in their collection)
 7. Create/Put Deck
    - Creates a deck based on the provided list of card_names, adding it to user's deck collection. (Must include at 5 cards in a deck)
