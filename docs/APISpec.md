@@ -20,12 +20,17 @@ API Specification
    - Creates a deck based on the provided list of card_names, adding it to user's deck collection. (Must include at 5 cards in a deck)
 8. View/Get Decks(user_id)
    - Returns a list of the user's current decks. (Users may have no more than 3 decks total)
-9. Open/Get Card Pack(user_id, pack_name)
+9. Buy Pack(user_id, pack_name)
+   - Adds pack to user_id's inventory, subtracting the corresponding coin cost.
+10. Open Card Pack(user_id, pack_name)
    - Returns a list of 5 cards, adding them to the user's collection and subtracting the pack's coin cost. The cards are pulled randomly based on the provided pack_name.
-   - Get Card Pack(bob, Grass) ---> [Oddish, Rowlett, Shaymin, Snivy, Leafeon EX]
-10. Battle(user_id, deck_name)
+   - i.e. Get Card Pack(bob, Grass) ---> [Oddish, Rowlett, Shaymin, Snivy, Leafeon EX]
+11. Battle(user_id, deck_name)
    - As long as the user provides a valid deck_name, a text message describing the battle is returned. The user may gain gold based on the results of the battle. (Higher deck value = Better odds)
-   - Battle(Bob, Grass) ---> "you got demolished, sucks to suck. No gold gained"
-   - Battle(Bob, Pay2Win) ---> "Lightwork, gained 50 gold"
+   - i.e. Battle(Bob, Grass) ---> "you got demolished, sucks to suck. No gold gained"
+   - i.e. Battle(Bob, Pay2Win) ---> "Lightwork, gained 50 gold"
+12. Get Inventory(user_id)
+   - Returns list of packs in the user's inventory, along with their quantities.
+   - i.e. Get Inventory(bob) ---> [Grass(5), Water(2), Fire(7)] 
 
 
