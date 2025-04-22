@@ -22,6 +22,7 @@ API Specification
    - Returns a list of the user's current decks. (Users may have no more than 3 decks total)
 9. Open/Get Card Pack(user_id, pack_name)
    - Returns a list of 5 cards, adding them to the user's collection and subtracting the pack's coin cost. The cards are pulled randomly based on the provided pack_name.
+   - Get Card Pack(bob, Grass) ---> [Oddish, Rowlett, Shaymin, Snivy, Leafeon EX]
 10. Battle(user_id, deck_name)
    - As long as the user provides a valid deck_name, a text message describing the battle is returned. The user may gain gold based on the results of the battle. (Higher deck value = Better odds)
    - Battle(Bob, Grass) ---> "you got demolished, sucks to suck. No gold gained"
