@@ -18,3 +18,16 @@ Misty decides to buy the Prismatic Evolution pack, open the pack, and display he
 - finally she shows off her favorite pull - **Prismatic Umbreon** by calling `POST /users/misty/display/Prismatic_Umbreon`
 
 Misty is satisfied with her radiant new additions and dazzling display.
+
+## Selling and Expanding Collection Example Flow
+AZ has been out of the game a while, but is looking to start building his collection again. He's interested in getting some valuable and newer cards for his collection, and he's willing to sell off some of his older cards he doesn't care that much about anymore.
+AZ starts by calling `GET /packs/catalog` to see some of the available options, eventually setting his eyes on the Paldean Fates expansion. He sees that each pack is 150 coins.
+
+- AZ calls `GET /users/az/collection` to view his collection and decide what cards to sell so he can afford the packs.
+- He calls `POST /users/az/sell/"Flygon"` to sell one of his old Flygon cards.
+- With the earnings from that sale, AZ calls `POST /users/az/purchase_pack/"Paldean Fates"`.
+- He then calls `POST /users/misty/open_pack/"Paldean Fates:/` to open his pack.
+- Since he isn't familiar with the newer cards from the pack, he calls `GET /packs/catalog/"Paldean Fates"/"Armarouge"` to learn more info about one of the cards he pulled.
+- Finally, he puts the card in his display by calling `POST /users/az/display/"Armarouge` to let everyone know he's back in town.
+
+AZ continues researching ways to improve his collection in the meantime.
