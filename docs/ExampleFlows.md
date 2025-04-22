@@ -7,10 +7,10 @@ She filters the card collection such that only the fire type pokemon cards are s
 - GET /users/timmy/collection. Her call gives her the fire pokemon cards available: Charizard, Blaziken, Reshiram, Dragonite, and Flareon. 
 
 She wants to use these pokemon to make a deck. She uses her user id along with 
-- POST /users/timmy/decks.
+- POST /users/timmy/create_deck/fire_deck/[Charizard, Blaziken, Reshiram, Dragonite, and Flareon].
 
 The server responds that the deck has been created and added to her account. Timmy is confident with all the strong cards in the deck and decides to go battle a user. He runs the API call 
--POST /users/timmy/battle. 
+-POST /users/timmy/battle/fire_deck. 
 
 The server is able to process his battle request and Timmy's Fire Lords fought magnificiently and defeated the foe. The win has earned Timmy 600 Pokemon coins and a rare card reward.
 
