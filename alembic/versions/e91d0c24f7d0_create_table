@@ -49,6 +49,6 @@ def upgrade() -> None:
 
 def downgrade():
     op.drop_table("packs")
-    op.drop_table("users)
+    op.drop_table("users")
     op.drop_table("inventory")
 
