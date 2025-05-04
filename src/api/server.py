@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api import inventory #carts, catalog, bottler, barrels, admin, info, 
+from src.api import inventory #carts, catalog, bottler, barrels, admin, info
 from starlette.middleware.cors import CORSMiddleware
 #NOTE FROM SHANE: STILL NEEDS TO BE MODIFIED, CONFUSED AS TO HOW.
 
