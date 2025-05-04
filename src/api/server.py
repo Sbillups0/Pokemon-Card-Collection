@@ -45,12 +45,7 @@ app.add_middleware(
 )
 
 app.include_router(inventory.router)
-app.include_router(carts.router)
-app.include_router(catalog.router)
-app.include_router(bottler.router)
-app.include_router(barrels.router)
-app.include_router(admin.router)
-app.include_router(info.router)
+
 
 
 @app.get("/")
