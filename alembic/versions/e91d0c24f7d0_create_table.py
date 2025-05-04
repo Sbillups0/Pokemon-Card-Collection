@@ -41,9 +41,12 @@ def upgrade():
     )
     op.create_table(
         "inventory",
-        sa.Column("user_id", sa.Integer, sa.ForeignKey("users.id"), primary_key=True),
-        sa.Column("pack", sa.Text, sa.ForeignKey("packs.name"), primary_key=True),
+        sa.Column("user_id", sa.Integer, primary_key=True),
+        sa.Column("pack", sa.Text, primary_key=True),
         sa.Column("quantity", sa.Integer, nullable=False),
+
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_user_id", ondelete='CASCADE'), #Foreign Key to Transactions
+        sa.ForeignKeyConstraint(["pack"], ["packs.name"], name="fk_pack_name", ondelete='cascade'), #Foreign Key to Accounts
     )
 
 
