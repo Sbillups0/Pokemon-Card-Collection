@@ -42,7 +42,7 @@ def upgrade():
     op.create_table(
         "inventory",
         sa.Column("user_id", sa.Integer, primary_key=True),
-        sa.Column("pack_id", sa.Text, primary_key=True),
+        sa.Column("pack_id", sa.Integer, primary_key=True),
         sa.Column("quantity", sa.Integer, nullable=False),
 
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_user_id", ondelete='CASCADE'), #Foreign Key to Transactions
