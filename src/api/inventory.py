@@ -16,7 +16,7 @@ class InventoryAudit(BaseModel):
     packs: dict[Pack, int]
     #dict mapping each pack to the quantity owned by the user
 
-@router.get("/audit", tags=["inventory"], response_model=InventoryAudit)
+@router.get("/inventory/{user_id}/inventory", tags=["inventory"], response_model=InventoryAudit)
 def get_inventory(user_id: int) -> InventoryAudit:
     """Returns a list of all unopened packs a user owns in their inventory given a specific user ID"""
     with db.engine.begin() as connection:
