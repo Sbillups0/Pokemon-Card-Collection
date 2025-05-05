@@ -50,7 +50,6 @@ def create_catalog() -> List[Pack]:
 @router.get("/catalog/", tags=["catalog"], response_model=List[Pack])
 def get_catalog() -> List[Pack]:
     """
-    Retrieves the catalog of items. Each unique item combination should have only a single price.
-    You can have at most 6 potion SKUs offered in your catalog at one time.
+    Retrieves the catalog of five packs that are available to purchase.
     """
     return create_catalog()
