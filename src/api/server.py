@@ -6,6 +6,7 @@ from starlette.middleware.cors import CORSMiddleware
 description = """
 Buy some cards and stuff, or don't...
 """
+# OpenAPI descriptions and info for the API documentation
 tags_metadata = [
     {
         "name": "inventory",
