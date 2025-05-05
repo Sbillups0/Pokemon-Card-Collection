@@ -18,30 +18,6 @@ router = APIRouter(
     name: str
     price: int"""
 
-@router.get("/users/{user_id}/inventory", response_model=List[Pack])
-def get_inventory(user_id: int) -> List[Pack]:
-    """Returns a list of all unopened packs a user owns in their inventory given a specific user ID"""
-    with db.engine.begin() as connection:
-        owned_packs = connection.execute(
-            sqlalchemy.text( # p.price may be renamed to p.price?
-                """
-                SELECT p.name, p.price, i.quantity FROM inventory as i
-                INNER JOIN packs AS p ON p.id = i.pack_id
-                WHERE user_id = :user_id
-                """
-            ),
-            [{"user_id": user_id}],
-        )
-    
-    pack_inventory = []
-    for pack_data in owned_packs:
-        i = 1
-        while i <= pack_data[2]:
-            pack_inventory.append(Pack(name=pack_data[0], price=pack_data[1]))
-            i += 1
-    
-    return pack_inventory
-
 @router.post("/users/{user_id}/purchase_packs", tags=["packs"], status_code=status.HTTP_204_NO_CONTENT)
 def purchase_packs(user_id: int, pack_name: str, pack_quantity: int):
     """The user given by the user_id gives the name of a specific pack and the number they'd
