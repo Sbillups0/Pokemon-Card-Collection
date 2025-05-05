@@ -4,10 +4,11 @@ from typing import List, Annotated
 import sqlalchemy
 from src.api import auth
 from src import database as db
+#from src.api.packs import Pack
 
 router = APIRouter()
 
-class Cards(BaseModel):
+class Card(BaseModel):
     type: str
     name: str
 
@@ -15,7 +16,7 @@ class Cards(BaseModel):
 class Pack(BaseModel):
     name: str
     price: int
-    """possible_cards: List[Cards] = Field(
+    """possible_cards: List[Card] = Field(
         ...,
         min_length=30,
         max_length=30,
