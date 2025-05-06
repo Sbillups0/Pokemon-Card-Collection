@@ -72,14 +72,13 @@ curl -X 'POST' \
 ### Buy packs
 
 1. Buy Basic Pack
-   
-   ```bash
+```bash
    curl -X 'POST' \
    'https://pokemon-card-collection-kek1.onrender.com/packs/users/4/purchase_packs/Basic/1' \
    -H 'accept: */*' \
    -H 'access_token: 123456789' \
    -d ''
-   ```
+```
 1a. Response
 
 ```
