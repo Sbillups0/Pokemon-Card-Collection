@@ -23,7 +23,7 @@ class Checkout(BaseModel):
     pack: str
     total_spent: int
 
-@router.post("/users/{user_id}/purchase_packs/{pack_name}/{pack_quantity}", tags=["packs"], status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/users/{user_id}/purchase_packs/{pack_name}/{pack_quantity}", tags=["packs"], response_model=Checkout)
 def purchase_packs(user_id: int, pack_name: str, pack_quantity: int):
     """The user given by the user_id gives the name of a specific pack and the number they'd
         like to purchase. The price is subtracted from their gold and the packs are added to 
@@ -99,4 +99,4 @@ def purchase_packs(user_id: int, pack_name: str, pack_quantity: int):
             """),
             {"total_cost": total_cost, "user_id": user_id}
         )
-        return Checkout(pack = name, total_spent = total_cost)
+        return Checkout(pack = pack_name, total_spent = total_cost)
