@@ -6,7 +6,7 @@ Lina is a new player who just started her journey. She's excited to begin collec
 Lina begins by calling `GET /packs/catalog` to see what kinds of packs are available. She sees options like Grass_Pack and Water_Pack, both priced at 20 coins each.
 
 - She registers as a user with a username `POST /users/register/user_lina`
-- She decides to buy one of each, so she calls: `POST /packs/users/lina/purchase_pack/Grass_Pack/1`, `POST /packs/users/lina/purchase_pack/Water_Pack/1`
+- She decides to buy one of each, so she calls: `POST /packs/users/lina/purchase_pack/Jungle/1`, `POST /packs/users/lina/purchase_pack/Basic/1`
 - To make sure the purchases went through, she calls: `GET /inventory/lina/audit`
 
 Lina is ready to start opening packs and seeing what surprises await her inside!
@@ -24,7 +24,7 @@ Lina is ready to start opening packs and seeing what surprises await her inside!
 
 2. Response
 
-````
+```
 [
 {
 "name": "Basic",
@@ -42,5 +42,29 @@ Lina is ready to start opening packs and seeing what surprises await her inside!
 "name": "Team Rocket",
 "price": 200
 }
-] ```
-````
+]
+```
+
+### Register Username
+
+1. Curl statement called.
+
+```bash curl -X 'POST' \
+  'https://pokemon-card-collection-kek1.onrender.com/users/users/register/{username}' \
+  -H 'accept: application/json' \
+  -H 'access_token: 123456789' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "username": "user_lina"
+}'
+```
+
+2. Response
+
+```
+{
+  "user_id": 1
+}
+```
+
+### Buy packs
