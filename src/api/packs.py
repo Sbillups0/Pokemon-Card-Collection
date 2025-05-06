@@ -19,6 +19,9 @@ router = APIRouter(
     name: str
     price: int"""
 
+class Checkout(BaseModel):
+    total_spent: int
+
 @router.post("/users/{user_id}/purchase_packs/{pack_name}/{pack_quantity}", tags=["packs"], status_code=status.HTTP_204_NO_CONTENT)
 def purchase_packs(user_id: int, pack_name: str, pack_quantity: int):
     """The user given by the user_id gives the name of a specific pack and the number they'd
@@ -95,5 +98,5 @@ def purchase_packs(user_id: int, pack_name: str, pack_quantity: int):
             """),
             {"total_cost": total_cost, "user_id": user_id}
         )
-
+        return Checkout(total_spent = total_cost)
         pass
