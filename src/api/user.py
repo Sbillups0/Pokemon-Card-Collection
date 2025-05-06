@@ -25,24 +25,25 @@ def register_user(new_user: User):
     """Register a user. If the user already exists, raise an exception.
     If the user does not exist, add them to the users_table and return the id."""
 
+
     with db.engine.begin() as conn:
         # Check if user already exists
         existing_user = conn.execute(
-            sqlalchemy.text("SELECT User_id FROM users_table WHERE Username = :username"),
+            sqlalchemy.text("SELECT id FROM users WHERE Username = :username"),
             {"username": new_user.username}
         ).fetchone()
 
         if existing_user:
             raise Exception("User already exists")
 
-        # Insert new user with default Coins (e.g., 0)
+        # Insert new user with default Coins (e.g., 0) pass in Name return the id used
         result = conn.execute(
             sqlalchemy.text("""
-                INSERT INTO users_table (Username, Coins)
-                VALUES (:username, :coins)
+                INSERT INTO users (username)
+                VALUES (:username)
                 RETURNING User_id
             """),
-            {"username": new_user.username, "coins": 0}
+            {"username": new_user.username}
         )
         user_id = result.scalar()
 
