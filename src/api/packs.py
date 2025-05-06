@@ -76,10 +76,10 @@ def purchase_packs(user_id: int, pack_name: str, pack_quantity: int):
                 """
                 UPDATE users SET 
                 coins = coins + :total_coins
-                WHERE pack_id = :pack_choice
+                WHERE id = :user_id
                 """
             ),
-            [{"total_coins": total_coins}]
+            [{"total_coins": total_coins, "user_id": user_id}],
         )
     
     pass
