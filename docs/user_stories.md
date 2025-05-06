@@ -47,11 +47,13 @@ User Stories and Exceptions
     - The request will return an error and tell the user to remove cards before adding new ones.
 
 7: As an irresponsible whale, I want to buy one type of pack continuously until I can get the card I want. (Buy certain pack until obtained card)
+
 - Exceptions:
   - The user tries to buy a pack but does not have enough coins.
     - The request will return an error and inform the user that they do not have sufficient coins.
 
 8: As a collaborative collector, I want to trade a card to my friend in exchange for one of their cards which I want. (Trade with friend)
+
 - Exceptions:
   - The user puts up a card for trade that they do not own.
     - The request will return an error and notify the user that the card is not in their collection.
@@ -63,21 +65,25 @@ User Stories and Exceptions
     - The request will return an error, and tell the user their collection is empty.
 
 9: As a wily merchant, I want to understand the value of my collection. Therefore, I want to know the rarity and market price of all my cards together. (View collection value)
+
 - Exceptions:
   - The user has no cards to view. (Empty list)
     - Displays a message informing the user that they have no cards to view.
 
 10: As someone who is currently broke, I need the most money I can get, but I don't want to give up the little cards that I have. So I want to sell only my most expensive card. (Sell individual Card)
+
 - Exceptions:
   - The card is not in the user's collection (Empty list)
     - Displays a message informing the user to try another card.
-   
+
 11: As a professional battler, I only want to fight to make money. (Battle)
+
 - Exceptions:
   - The user has no valid deck (Empty list)
     - Displays a message informing the user that they must have a full deck to battle.
-   
+
 12: As an avid art collector, I only care about my most expensive cards. Nothing below 1000 Pokecoins will suffice. Therefore, I want to sell all of my cards below a certain Pokecoin threshold. (Sell All Cards Less Than X)
+
 - Exceptions:
   - The user has no cards to sell. (Empty list)
     - Displays a message informing the user that they have no cards to sell.

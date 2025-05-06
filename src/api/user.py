@@ -46,7 +46,6 @@ def register_user(new_user: User):
             {"username": new_user.username}
         )
         user_id = result.scalar()
-        print(user_id)
 
     return UserCreateResponse(user_id=user_id)
 
