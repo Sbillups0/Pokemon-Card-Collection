@@ -1,16 +1,17 @@
 ## Fire Deck Creation and Battle Example Flow
 
-Timmy the witiful battler wants to prep for his pokemon battle competition by creating a fire type deck using the most powerful pokemon. 
+Timmy the witiful battler wants to prep for his pokemon battle competition by creating a fire type deck using the most powerful pokemon.
 
-She filters the card collection such that only the fire type pokemon cards are shown using 
+She filters the card collection such that only the fire type pokemon cards are shown using
 
-- GET /users/timmy/collection. Her call gives her the fire pokemon cards available: Charizard, Blaziken, Reshiram, Dragonite, and Flareon. 
+- GET /users/timmy/collection. Her call gives her the fire pokemon cards available: Charizard, Blaziken, Reshiram, Dragonite, and Flareon.
 
-She wants to use these pokemon to make a deck. She uses her user id along with 
+She wants to use these pokemon to make a deck. She uses her user id along with
+
 - POST /users/timmy/create_deck/fire_deck/[Charizard, Blaziken, Reshiram, Dragonite, and Flareon].
 
-The server responds that the deck has been created and added to her account. Timmy is confident with all the strong cards in the deck and decides to go battle a user. He runs the API call 
--POST /users/timmy/battle/fire_deck. 
+The server responds that the deck has been created and added to her account. Timmy is confident with all the strong cards in the deck and decides to go battle a user. He runs the API call
+-POST /users/timmy/battle/fire_deck.
 
 The server is able to process his battle request and Timmy's Fire Lords fought magnificiently and defeated the foe. The win has earned Timmy 600 Pokemon coins and a rare card reward.
 
@@ -32,6 +33,7 @@ Misty decides to buy the Prismatic Evolution pack, open the pack, and display he
 Misty is satisfied with her radiant new additions and dazzling display.
 
 ## Selling and Expanding Collection Example Flow
+
 AZ has been out of the game a while, but is looking to start building his collection again. He's interested in getting some valuable and newer cards for his collection, and he's willing to sell off some of his older cards he doesn't care that much about anymore.
 AZ starts by calling `GET /packs/catalog` to see some of the available options, eventually setting his eyes on the Paldean Fates expansion. He sees that each pack is 150 coins.
 
@@ -43,3 +45,14 @@ AZ starts by calling `GET /packs/catalog` to see some of the available options, 
 - Finally, he puts the card in his display by calling `POST /users/az/display/"Armarouge` to let everyone know he's back in town.
 
 AZ continues researching ways to improve his collection in the meantime.
+
+## Pack Collecting Example Flow
+
+Lina is a new player who just started her journey. She's excited to begin collecting and wants to start by purchasing some beginner-friendly packs to build her inventory.
+Lina begins by calling `GET /packs/catalog` to see what kinds of packs are available. She sees options like Grass_Pack and Water_Pack, both priced at 20 coins each.
+
+- She registers as a user with a username `POST /users/register/user_lina`
+- She decides to buy one of each, so she calls: `POST /users/lina/purchase_pack/Grass_Pack`, `POST /users/lina/purchase_pack/Water_Pack`
+- To make sure the purchases went through, she calls: `GET /inventory/audit`
+
+Lina is ready to start opening packs and seeing what surprises await her inside!
