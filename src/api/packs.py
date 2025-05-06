@@ -20,6 +20,7 @@ router = APIRouter(
     price: int"""
 
 class Checkout(BaseModel):
+    pack: str
     total_spent: int
 
 @router.post("/users/{user_id}/purchase_packs/{pack_name}/{pack_quantity}", tags=["packs"], status_code=status.HTTP_204_NO_CONTENT)
@@ -98,5 +99,4 @@ def purchase_packs(user_id: int, pack_name: str, pack_quantity: int):
             """),
             {"total_cost": total_cost, "user_id": user_id}
         )
-        return Checkout(total_spent = total_cost)
-        pass
+        return Checkout(pack = name, total_spent = total_cost)
