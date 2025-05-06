@@ -39,8 +39,7 @@ def upgrade():
         sa.Column("id", sa.Integer, sa.Identity(always=True, start=1), autoincrement=True, primary_key=True),
         sa.Column("username", sa.Text, nullable=False),
         sa.Column("coins", sa.Integer, nullable=False),
-
-        sa.Constraint("positive_coin_constraint", "coins", sa.CheckConstraint("coins >= 0")), #Constraint to ensure coins are not negative
+        sa.CheckConstraint("coins >= 0", name="check_coins_positive"), # Check constraint to ensure coins are non-negative
     )
     op.create_table(
         "inventory",
