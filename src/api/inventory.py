@@ -26,13 +26,14 @@ def get_inventory(user_id: int) -> InventoryAudit:
         owned_packs = connection.execute(
             sqlalchemy.text( # p.price may be renamed to p.price?
                 """
-                SELECT p.name, p.price, i.quantity FROM inventory as i
-                INNER JOIN packs AS p ON p.id = i.pack_id
-                WHERE user_id = :user_id
+                SELECT p.name AS name, p.price AS price, i.quantity AS quantity
+                FROM inventory AS i
+                JOIN packs AS p ON p.id = i.pack_id
+                WHERE i.user_id = :user_id
                 """
             ),
             [{"user_id": user_id}],
-        )
+        ).mappings()
     
         pack_inventory = [
             PackWithQuantity(pack=Pack(name=row["name"], price=row["price"]), quantity=row["quantity"])
