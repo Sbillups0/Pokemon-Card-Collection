@@ -32,7 +32,7 @@ def get_inventory(user_id: int) -> InventoryAudit:
                 """
             ),
             [{"user_id": user_id}],
-        )
+        ).mappings()
     
         pack_inventory = [
             PackWithQuantity(pack=Pack(name=row["name"], price=row["price"]), quantity=row["quantity"])
