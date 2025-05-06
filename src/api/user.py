@@ -24,7 +24,7 @@ class UserCreateResponse(BaseModel):
 def register_user(new_user: User):
     """Register a user. If the user already exists, raise an exception.
     If the user does not exist, add them to the users_table and return the id."""
-
+    print(new_user.username)
 
     with db.engine.begin() as conn:
         # Check if user already exists
@@ -41,11 +41,12 @@ def register_user(new_user: User):
             sqlalchemy.text("""
                 INSERT INTO users (username)
                 VALUES (:username)
-                RETURNING User_id
+                RETURNING id
             """),
             {"username": new_user.username}
         )
         user_id = result.scalar()
+        print(user_id)
 
     return UserCreateResponse(user_id=user_id)
 
