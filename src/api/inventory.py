@@ -12,9 +12,12 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
+class PackWithQuantity(BaseModel):
+    pack: Pack
+    quantity: int
+
 class InventoryAudit(BaseModel):
-    packs: dict[Pack, int]
-    #dict mapping each pack to the quantity owned by the user
+    packs: List[PackWithQuantity]
 
 @router.get("/{user_id}/audit", tags=["inventory"], response_model=InventoryAudit)
 def get_inventory(user_id: int) -> InventoryAudit:
@@ -31,8 +34,9 @@ def get_inventory(user_id: int) -> InventoryAudit:
             [{"user_id": user_id}],
         )
     
-    pack_inventory = {}
-    for pack_data in owned_packs:
-        pack_inventory.update({Pack(name=pack_data[0], price=pack_data[1]):pack_data[2]})
+    pack_inventory = [
+        PackWithQuantity(pack=Pack(name=row[0], price=row[1]), quantity=row[2])
+        for row in owned_packs
+    ]
     
     return InventoryAudit(packs=pack_inventory)
