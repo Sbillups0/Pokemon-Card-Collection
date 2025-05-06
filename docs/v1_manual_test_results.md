@@ -80,9 +80,6 @@ curl -X 'POST' \
    -H 'access_token: 123456789' \
    -d ''
    ```
-
-````
-
 2. Buy Jungle Pack
   ```bash
   curl -X 'POST' \
