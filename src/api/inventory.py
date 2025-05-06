@@ -34,9 +34,9 @@ def get_inventory(user_id: int) -> InventoryAudit:
             [{"user_id": user_id}],
         )
     
-    pack_inventory = [
-        PackWithQuantity(pack=Pack(name=row[0], price=row[1]), quantity=row[2])
-        for row in owned_packs
-    ]
+        pack_inventory = [
+            PackWithQuantity(pack=Pack(name=row["name"], price=row["price"]), quantity=row["quantity"])
+            for row in owned_packs
+        ]
     
     return InventoryAudit(packs=pack_inventory)
