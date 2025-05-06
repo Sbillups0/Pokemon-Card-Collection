@@ -80,6 +80,14 @@ curl -X 'POST' \
    -H 'access_token: 123456789' \
    -d ''
    ```
+1a. Response
+
+```
+{
+  "pack": "Basic",
+  "total_spent": 25
+}
+```
 2. Buy Jungle Pack
   ```bash
   curl -X 'POST' \
@@ -88,6 +96,15 @@ curl -X 'POST' \
 -H 'access_token: 123456789' \
 -d ''
 ````
+
+2a. Response
+
+```
+{
+  "pack": "Jungle",
+  "total_spent": 50
+}
+```
 
 ### Make Sure Purchase Went Through
 
