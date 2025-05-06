@@ -49,7 +49,8 @@ Lina is ready to start opening packs and seeing what surprises await her inside!
 
 1. Curl statement called.
 
-```bash curl -X 'POST' \
+```bash
+curl -X 'POST' \
   'https://pokemon-card-collection-kek1.onrender.com/users/users/register/{username}' \
   -H 'accept: application/json' \
   -H 'access_token: 123456789' \
@@ -68,3 +69,57 @@ Lina is ready to start opening packs and seeing what surprises await her inside!
 ```
 
 ### Buy packs
+
+1. Buy Basic Pack
+   ```bash
+   curl -X 'POST' \
+   'https://pokemon-card-collection-kek1.onrender.com/packs/users/4/purchase_packs/Basic/1' \
+   -H 'accept: */*' \
+   -H 'access_token: 123456789' \
+   -d ''
+   ```
+
+````
+
+2. Buy Jungle Pack
+  ```bash
+  curl -X 'POST' \
+'https://pokemon-card-collection-kek1.onrender.com/packs/users/4/purchase_packs/Jungle/1' \
+-H 'accept: */*' \
+-H 'access_token: 123456789' \
+-d ''
+````
+
+### Make Sure Purchase Went Through
+
+1. Curl statement called.
+
+```bash
+curl -X 'GET' \
+  'https://pokemon-card-collection-kek1.onrender.com/inventory/4/audit' \
+  -H 'accept: application/json' \
+  -H 'access_token: 123456789'
+```
+
+2.
+
+```
+{
+  "packs": [
+    {
+      "pack": {
+        "name": "Basic",
+        "price": 25
+      },
+      "quantity": 1
+    },
+    {
+      "pack": {
+        "name": "Jungle",
+        "price": 50
+      },
+      "quantity": 1
+    }
+  ]
+}
+```
