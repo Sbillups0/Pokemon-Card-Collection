@@ -48,12 +48,13 @@ def upgrade():
         sa.Column("quantity", sa.Integer, nullable=False),
 
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_user_id", ondelete='CASCADE'), #Foreign Key to Transactions
-        sa.ForeignKeyConstraint(["pack_id"], ["packs.id"], name="fk_pack_name", ondelete='cascade'), #Foreign Key to Accounts
+        sa.ForeignKeyConstraint(["pack_id"], ["packs.id"], name="fk_pack_name", ondelete='CASCADE'), #Foreign Key to Accounts
     )
 
 
 def downgrade():
+    op.drop_table("inventory")
     op.drop_table("packs")
     op.drop_table("users")
-    op.drop_table("inventory")
+    
 

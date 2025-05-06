@@ -19,8 +19,8 @@ class User(BaseModel):
 class UserCreateResponse(BaseModel):
     user_id: int
 
-@router.post("/register/{username}", response_model=UserCreateResponse)
-def register_user(new_user: User):
+@router.post("/users/register/", response_model=UserCreateResponse)
+def register_user(username: str):
     """Register a user. If the user already exists, raise an exception.
     If the user does not exist, add them to the users_table and return the id."""
     print(new_user.username)
