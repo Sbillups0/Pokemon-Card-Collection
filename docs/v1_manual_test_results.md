@@ -17,7 +17,8 @@ Lina is ready to start opening packs and seeing what surprises await her inside!
 
 1. Curl statement called.
 
-```bash curl -X 'GET' \
+```bash
+curl -X 'GET' \
   'https://pokemon-card-collection-kek1.onrender.com/catalog/' \
   -H 'accept: application/json'
 ```
@@ -71,6 +72,7 @@ curl -X 'POST' \
 ### Buy packs
 
 1. Buy Basic Pack
+   
    ```bash
    curl -X 'POST' \
    'https://pokemon-card-collection-kek1.onrender.com/packs/users/4/purchase_packs/Basic/1' \
@@ -101,7 +103,7 @@ curl -X 'GET' \
   -H 'access_token: 123456789'
 ```
 
-2.
+2. Response
 
 ```
 {
