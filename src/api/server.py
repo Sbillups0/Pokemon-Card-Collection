@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api import inventory, catalog, packs #carts, bottler, barrels, admin, info
+from src.api import inventory, catalog, packs, user  # carts, bottler, barrels, admin, info
 from starlette.middleware.cors import CORSMiddleware
 #NOTE FROM SHANE: STILL NEEDS TO BE MODIFIED, CONFUSED AS TO HOW.
 
@@ -18,6 +18,10 @@ tags_metadata = [
     {
         "name": "packs",
         "description": "Purchase packs from the current catalog and add them to inventory."
+    },
+    {
+        "name": "user",
+        "description": "Register a new user that could buy and keep inventory of packs"
     }
 ]
 
@@ -46,6 +50,7 @@ app.add_middleware(
 app.include_router(inventory.router)
 app.include_router(catalog.router)
 app.include_router(packs.router)
+app.include_router(user.router)
 
 
 @app.get("/")
