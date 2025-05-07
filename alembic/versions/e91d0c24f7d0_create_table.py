@@ -30,7 +30,7 @@ def upgrade():
             """
             INSERT INTO packs (name, price) 
             VALUES 
-            ('Basic', 25), ('Jungle', 50), ('Fossil', 100), ('Team Rocket', 200)
+            ('Shrouded Fable', 25), ('Surging Sparks', 50), ('Paldean Fates', 100), ('Crown Zenith', 200)
             """
         )
     )
@@ -47,8 +47,8 @@ def upgrade():
         sa.Column("pack_id", sa.Integer, primary_key=True),
         sa.Column("quantity", sa.Integer, nullable=False),
 
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_user_id", ondelete='CASCADE'), #Foreign Key to Transactions
-        sa.ForeignKeyConstraint(["pack_id"], ["packs.id"], name="fk_pack_name", ondelete='CASCADE'), #Foreign Key to Accounts
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_user_id", ondelete='CASCADE'), #Foreign Key to Users
+        sa.ForeignKeyConstraint(["pack_id"], ["packs.id"], name="fk_pack_name", ondelete='CASCADE'), #Foreign Key to Packs
     )
 
 
