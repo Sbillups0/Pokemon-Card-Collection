@@ -39,7 +39,7 @@ def register_user(username: str):
         result = conn.execute(
             sqlalchemy.text("""
                 INSERT INTO users (username, coins)
-                VALUES (:username, 0)
+                VALUES (:username, 100)
                 RETURNING id
             """),
             {"username": new_user.username}
