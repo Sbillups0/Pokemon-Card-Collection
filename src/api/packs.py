@@ -59,6 +59,16 @@ def open_packs(user_id: int, pack_name: str, pack_quantity: int):
 
             if owned_packs < pack_quantity:
                 raise HTTPException(status_code=404, detail="Not enough packs in inventory")
+            else:
+                # 2. Update inventory to reflect packs opened
+                connection.execute(
+                    sqlalchemy.text("""
+                        UPDATE inventory
+                        SET quantity = quantity - :pack_quantity
+                        WHERE user_id = :user_id AND pack_id = (SELECT id FROM packs WHERE name = :pack_name)
+                    """),
+                    {"user_id": user_id, "pack_quantity": pack_quantity, "pack_name": pack_name}
+                )
         #2 Opens packs for number of packs opened
         opened_packs = []
         for i in range(pack_quantity):
