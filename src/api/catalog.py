@@ -11,18 +11,13 @@ router = APIRouter()
 class Card(BaseModel):
     type: str
     name: str
+    price: int
 
 
 class Pack(BaseModel):
     name: str
     price: int
-    """possible_cards: List[Card] = Field(
-        ...,
-        min_length=30,
-        max_length=30,
-        description="Must contain 30 cards",
-    )"""
-
+    
 
 # Placeholder function, you will replace this with a database call
 def create_catalog() -> List[Pack]:
