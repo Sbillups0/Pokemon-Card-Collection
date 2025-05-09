@@ -29,7 +29,7 @@ def get_inventory(user_id: int) -> InventoryAudit:
                 SELECT p.name AS name, p.price AS price, i.quantity AS quantity
                 FROM inventory AS i
                 JOIN packs AS p ON p.id = i.pack_id
-                WHERE i.user_id = :user_id
+                WHERE i.user_id = :user_id AND i.quantity > 0
                 """
             ),
             [{"user_id": user_id}],
