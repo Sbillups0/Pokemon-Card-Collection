@@ -25,10 +25,10 @@ She sees in the catalog, there is a Prismatic Evolution (200 coins), Scarlet & V
 
 Misty decides to buy the Prismatic Evolution pack, open the pack, and display her favorite cards. To do so she:
 
-- starts by calling `POST /users/misty/purchase_pack`
-- then Misty decides to open her new exciting pack, by calling `POST /users/misty/open_pack/Pristmatic_Evolution`
-- she decides to view her collection making another call `GET /users/misty/collection`
-- finally she shows off her favorite pull - **Prismatic Umbreon** by calling `POST /users/misty/display/Prismatic_Umbreon`
+- starts by calling `POST /users/misty_id/purchase_pack`
+- then Misty decides to open her new exciting pack, by calling `POST /users/misty_id/open_pack/Pristmatic_Evolution/1`
+- she decides to view her collection making another call `GET /users/misty_id/collection`
+- finally she shows off her favorite pull - **Prismatic Umbreon** by calling `POST /users/misty_id/display/Prismatic_Umbreon`
 
 Misty is satisfied with her radiant new additions and dazzling display.
 
