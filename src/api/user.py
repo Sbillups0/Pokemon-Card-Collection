@@ -19,17 +19,17 @@ class User(BaseModel):
 class UserCreateResponse(BaseModel):
     user_id: int
 
-@router.post("/register/{username}", response_model=UserCreateResponse)
-def register_user(new_user: User):
+@router.post("/users/register/", response_model=UserCreateResponse)
+def register_user(username: str):
     """Register a user. If the user already exists, raise an exception.
     If the user does not exist, add them to the users_table and return the id."""
-    print(new_user.username)
+    print(username)
 
     with db.engine.begin() as conn:
         # Check if user already exists
         existing_user = conn.execute(
             sqlalchemy.text("SELECT id FROM users WHERE Username = :username"),
-            {"username": new_user.username}
+            {"username": username}
         ).fetchone()
 
         if existing_user:
@@ -39,10 +39,10 @@ def register_user(new_user: User):
         result = conn.execute(
             sqlalchemy.text("""
                 INSERT INTO users (username, coins)
-                VALUES (:username, 0)
+                VALUES (:username, 100)
                 RETURNING id
             """),
-            {"username": new_user.username}
+            {"username": username}
         )
         user_id = result.scalar()
 

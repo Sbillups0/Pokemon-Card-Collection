@@ -17,7 +17,8 @@ Lina is ready to start opening packs and seeing what surprises await her inside!
 
 1. Curl statement called.
 
-```bash curl -X 'GET' \
+```bash
+curl -X 'GET' \
   'https://pokemon-card-collection-kek1.onrender.com/catalog/' \
   -H 'accept: application/json'
 ```
@@ -71,16 +72,21 @@ curl -X 'POST' \
 ### Buy packs
 
 1. Buy Basic Pack
-   ```bash
+```bash
    curl -X 'POST' \
    'https://pokemon-card-collection-kek1.onrender.com/packs/users/4/purchase_packs/Basic/1' \
    -H 'accept: */*' \
    -H 'access_token: 123456789' \
    -d ''
-   ```
+```
+1a. Response
 
-````
-
+```
+{
+  "pack": "Basic",
+  "total_spent": 25
+}
+```
 2. Buy Jungle Pack
   ```bash
   curl -X 'POST' \
@@ -89,6 +95,15 @@ curl -X 'POST' \
 -H 'access_token: 123456789' \
 -d ''
 ````
+
+2a. Response
+
+```
+{
+  "pack": "Jungle",
+  "total_spent": 50
+}
+```
 
 ### Make Sure Purchase Went Through
 
@@ -101,7 +116,7 @@ curl -X 'GET' \
   -H 'access_token: 123456789'
 ```
 
-2.
+2. Response
 
 ```
 {
