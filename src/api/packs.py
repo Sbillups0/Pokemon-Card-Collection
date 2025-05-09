@@ -8,6 +8,9 @@ import sqlalchemy
 from src.api import auth
 from src import database as db
 from src.api.catalog import Pack
+import random 
+import math
+from src.api.collection import check_user_exists
 
 router = APIRouter(
     prefix="/packs",
@@ -22,6 +25,83 @@ router = APIRouter(
 class Checkout(BaseModel):
     pack: str
     total_spent: int
+
+class PackOpened(BaseModel):
+    name: str
+    cards: List[str]
+
+def weighted_random_choice(item_list):
+    # Get the maximum price to invert weights
+    max_price = max(price for _, price in item_list)
+
+    # Create weights: lower price = higher weight
+    weights = [math.sqrt(max_price - price + 1) for _, price in item_list]
+
+    # Extract names
+    names = [name for name, _ in item_list]
+
+    # Randomly choose based on weights
+    chosen = random.choices(names, weights=weights, k=1)[0]
+    return chosen
+
+@router.post("/users/{user_id}/open_packs/{pack_name}/{pack_quantity}", tags=["packs"], response_model = List[PackOpened])
+def open_packs(user_id: int, pack_name: str, pack_quantity: int):
+        check_user_exists(user_id)
+        #1 Checks if user has enough packs to open
+        with db.engine.begin() as connection:
+            owned_packs = connection.execute(
+                sqlalchemy.text("""
+                    SELECT quantity FROM inventory
+                    WHERE user_id = :user_id AND pack_id = (SELECT id FROM packs WHERE name = :pack_name)
+                """),
+                {"user_id": user_id, "pack_name": pack_name}
+            ).scalar_one_or_none()
+
+            if owned_packs < pack_quantity:
+                raise HTTPException(status_code=404, detail="Not enough packs in inventory")
+            else:
+                # 2. Update inventory to reflect packs opened
+                connection.execute(
+                    sqlalchemy.text("""
+                        UPDATE inventory
+                        SET quantity = quantity - :pack_quantity
+                        WHERE user_id = :user_id AND pack_id = (SELECT id FROM packs WHERE name = :pack_name)
+                    """),
+                    {"user_id": user_id, "pack_quantity": pack_quantity, "pack_name": pack_name}
+                )
+        #2 Opens packs for number of packs opened
+        opened_packs = []
+        for i in range(pack_quantity):
+            with db.engine.begin() as connection:
+                packs = connection.execute(
+                    sqlalchemy.text("""
+                        SELECT cards.name, cards.price FROM cards
+                        LEFT JOIN packs ON cards.pack_id = packs.id
+                        WHERE packs.name = :pack_name
+                        ORDER BY cards.price asc"""
+                    ),[{"pack_name": pack_name}]
+                ).all()
+
+                card_list = []
+                for j in range(5):
+                    # Get a random card from the pack
+                    chosen_card = weighted_random_choice(packs)
+                    # Insert into collection, updating quantity if it already exists
+                    connection.execute(
+                        sqlalchemy.text("""
+                            INSERT INTO collection (user_id, card_id, quantity) VALUES (:user_id, (SELECT id FROM cards WHERE name = :card_name), 1)
+                            ON CONFLICT (user_id, card_id) DO UPDATE SET quantity = collection.quantity + 1
+                                        """
+                        ),[{"user_id": user_id, "card_name": chosen_card}]
+                    )
+                    # Add the chosen card to card_list
+                    card_list.append(chosen_card)
+                #Passes chosen cards to PackOpened for certain pack
+                opened_packs.append(PackOpened(name=pack_name+ ' #' + str(i+1), cards=card_list))
+                
+                   
+        return opened_packs
+
 
 @router.post("/users/{user_id}/purchase_packs/{pack_name}/{pack_quantity}", tags=["packs"], response_model=Checkout)
 def purchase_packs(user_id: int, pack_name: str, pack_quantity: int):

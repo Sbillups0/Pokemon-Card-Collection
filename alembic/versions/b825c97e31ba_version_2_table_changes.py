@@ -56,8 +56,8 @@ def upgrade() -> None:
     op.create_table(
         "collection",
         sa.Column("user_id", sa.Integer, primary_key=True),
-        sa.Column("card_id", sa.Integer, sa.Identity(always=True, start=1, maxvalue=30), autoincrement=True, primary_key=True),
-        sa.Column("quantity", sa.Text, nullable=False),
+        sa.Column("card_id", sa.Integer, primary_key=True),
+        sa.Column("quantity", sa.Integer, nullable=False),
 
         sa.ForeignKeyConstraint(["card_id"], ["cards.id"], name="fk_collection_card_id", ondelete='CASCADE'), #Foreign Key to Users
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_collection_user_id", ondelete='CASCADE'), #Foreign Key to Users
