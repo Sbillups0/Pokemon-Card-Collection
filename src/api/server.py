@@ -1,6 +1,5 @@
 from fastapi import FastAPI
-from src.api import inventory, catalog, packs, user, collection, cards  # carts, bottler, barrels, admin, info
-
+from src.api import inventory, catalog, packs, user, collection, cards, decks # carts, bottler, barrels, admin, info
 from starlette.middleware.cors import CORSMiddleware
 #NOTE FROM SHANE: STILL NEEDS TO BE MODIFIED, CONFUSED AS TO HOW.
 
@@ -24,6 +23,10 @@ tags_metadata = [
     {
         "name": "users",
         "description": "Register a new user that could buy and keep inventory of packs"
+    },
+    {
+        "name": "decks",
+        "description": "Create a new deck of cards from the current collection of cards owned by user."
     },
     {
         "name": "collection",
@@ -57,6 +60,7 @@ app.include_router(inventory.router)
 app.include_router(catalog.router)
 app.include_router(packs.router)
 app.include_router(user.router)
+app.include_router(decks.router)
 app.include_router(collection.router)
 app.include_router(cards.router)
 
