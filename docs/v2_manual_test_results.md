@@ -163,9 +163,9 @@ AZ, an out of touch player wants to get back in the game. He doesn't have any co
 - He gets the card details by calling `GET /collection/AZ-id/get`. AZ views his collection and decide what cards to sell. He sees the list of cards as - .
 - He decides to sell - "". He calls `POST /users/az/sell/"Flygon"` to sell his "Flygon" card.
 - He decides to buy the pack - "Paldean Fates" by calling `POST /users/az/purchase_pack/"Paldean Fates"` with the money he got by selling "Flygon" card
-- He opens the pack to see the card details by calling POST /packs/users/misty_id/open_pack/"Paldean Fates"/1
-- He calls GET /packs/catalog/"Paldean Fates"/"Armarouge" as he is new to the game and wanted to know more details about Armarouge card
-- He puts the card for display by calling POST /users/az/display/"Armarouge to let everyone know that he is ready for the game
+- He opens the pack to see the card details by calling `POST /packs/users/misty_id/open_pack/"Paldean Fates"/1`
+- He calls `GET /packs/catalog/"Paldean Fates"/"Armarouge"` as he is new to the game and wanted to know more details about Armarouge card
+- He puts the card for display by calling `POST /users/az/display/"Armarouge` to let everyone know that he is ready for the game
 - He continues researching and expanding further
 
 ## Testing results
