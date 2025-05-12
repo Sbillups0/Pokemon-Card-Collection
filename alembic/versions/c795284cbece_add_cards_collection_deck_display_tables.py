@@ -20,28 +20,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # ---- cards table ----    # ---- deck table ----
-    op.create_table(
-        "deck",
-        sa.Column("id", sa.Integer, sa.Identity(always=True, start=1), primary_key=True, autoincrement=True),
-        sa.Column("user_id", sa.Integer, nullable=False),
-        sa.Column("card_id", sa.Integer, nullable=False),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_deck_user", ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["card_id"], ["cards.id"], name="fk_deck_card", ondelete="CASCADE")
-    )
-
-    # ---- display table ----
-    op.create_table(
-        "display",
-        sa.Column("user_id", sa.Integer, primary_key=True),
-        sa.Column("card_id", sa.Integer, primary_key=True),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_display_user", ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["card_id"], ["cards.id"], name="fk_display_card", ondelete="CASCADE")
-    )
+    pass
 
 
 
 def downgrade() -> None:
-    op.drop_table("display")
-    op.drop_table("deck")
-    op.drop_table("collection")
-    op.drop_table("cards")
+    pass
