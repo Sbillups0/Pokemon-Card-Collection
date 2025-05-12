@@ -19,28 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # ---- cards table ----
-    op.create_table(
-        "cards",
-        sa.Column("id", sa.Integer, sa.Identity(always=True, start=1), primary_key=True, autoincrement=True),
-        sa.Column("name", sa.Text, nullable=False),
-        sa.Column("type", sa.Text, nullable=False),
-        sa.Column("cost", sa.Integer, nullable=False),
-        sa.Column("pack_id", sa.Integer, nullable=False),
-        sa.ForeignKeyConstraint(["pack_id"], ["packs.id"], name="fk_card_pack", ondelete="CASCADE")
-    )
-
-    # ---- collection table ----
-    op.create_table(
-        "collection",
-        sa.Column("user_id", sa.Integer, primary_key=True),
-        sa.Column("card_id", sa.Integer, primary_key=True),
-        sa.Column("quantity", sa.Integer, nullable=False),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_collection_user", ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["card_id"], ["cards.id"], name="fk_collection_card", ondelete="CASCADE")
-    )
-
-    # ---- deck table ----
+    # ---- cards table ----    # ---- deck table ----
     op.create_table(
         "deck",
         sa.Column("id", sa.Integer, sa.Identity(always=True, start=1), primary_key=True, autoincrement=True),
