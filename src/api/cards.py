@@ -43,7 +43,7 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
     with db.engine.begin() as conn:
         # Get card_id and cost
         card = conn.execute(sqlalchemy.text("""
-            SELECT id, cost FROM cards WHERE name = :card_name
+            SELECT id, price FROM cards WHERE name = :card_name
         """), {"card_name": card_name}).fetchone()
 
         if not card:
