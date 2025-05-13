@@ -17,7 +17,7 @@ def get_card_by_name(card_name: str):
             SELECT 
                 cards.name,
                 cards.type,
-                cards.cost,
+                cards.price,
                 packs.name AS pack
             FROM cards
             JOIN packs ON cards.pack_id = packs.id
@@ -29,7 +29,7 @@ def get_card_by_name(card_name: str):
 
         return {
             "name": result.name,
-            "cost": result.cost,
+            "price": result.price,
             "type": result.type,
             "pack": result.pack
         }
@@ -50,7 +50,7 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
             raise HTTPException(status_code=404, detail="Card not found")
 
         card_id = card.id
-        card_cost = card.cost
+        card_cost = card.price
         print("Card ID:" + str(card_id))
         print("Card Cost:" + str(card_cost))
         # Check user's collection
