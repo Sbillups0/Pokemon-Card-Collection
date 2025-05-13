@@ -15,6 +15,8 @@ The server responds that the deck has been created and added to her account. Tim
 
 The server is able to process his battle request and Timmy's Fire Lords fought magnificiently and defeated the foe. The win has earned Timmy 600 Pokemon coins and a rare card reward.
 
+## Testing results
+
 ### Get Collection of Fire Pokemon Cards
 
 1. Curl Statement called.
