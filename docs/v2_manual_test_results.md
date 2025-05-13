@@ -160,24 +160,28 @@ curl -X 'POST' \
 
 AZ, an out of touch player wants to get back in the game. He doesn't have any collection. He wants to start a collection by getting some valuable and newer cards for his collection. He has some old cards, which he doesn't want any more and wants to sell it. AZ does the following:
 
-- He gets the card details by calling `GET /collection/AZ-id/get`. AZ views his collection and decide what cards to sell. He sees the list of cards as - .
-- He decides to sell - "". He calls `POST /users/az/sell/"Flygon"` to sell his "Flygon" card.
-- He decides to buy the pack - "Paldean Fates" by calling `POST /users/az/purchase_pack/"Paldean Fates"` with the money he got by selling "Flygon" card
+- He gets the card details by calling `GET /collection/3/get`. AZ views his collection and decide what cards to sell. He sees the list of cards as - Dragonair, Chikorita etc.
+- He wanted to get the details of the card "Chikorita" by calling `GET /cards/Chikorita`
+- He decides to sell Chikorita which values 20 coins
+- He decides to sell - "". He calls `POST /users/3/sell/"Chikorita"` to sell his "Chikorita" card.
+- He decides to buy the pack - "Paldean Fates" by calling `POST /users/az/purchase_pack/"Paldean Fates"` with the money he got by selling "Chikorita" card
 - He opens the pack to see the card details by calling `POST /packs/users/misty_id/open_pack/"Paldean Fates"/1`
-- He calls `GET /packs/catalog/"Paldean Fates"/"Armarouge"` as he is new to the game and wanted to know more details about Armarouge card
+- He calls `GET /packs/catalog"` as he is new to the game and wanted to know more details about Paldean Fates pack
 - He puts the card for display by calling `POST /users/az/display/"Armarouge` to let everyone know that he is ready for the game
 - He continues researching and expanding further
 
 ## Testing results
 
-### GetCard
+### GetCollection
 
 1. Curl statement called.
 
 ```bash
-curl -X 'GET' \
-  'https://pokemon-card-collection-kek1.onrender.com/catalog/' \
-  -H 'accept: application/json'
+curl -X 'POST' \
+  'https://pokemon-card-collection-5n9d.onrender.com/collection/3/get' \
+  -H 'accept: application/json' \
+  -H 'access_token: nitin' \
+  -d ''
 ```
 
 2. Response
@@ -185,95 +189,120 @@ curl -X 'GET' \
 ```
 [
   {
-    "name": "Shrouded Fable",
-    "price": 25
+    "Card": {
+      "type": "Dragon",
+      "name": "Dragonair",
+      "price": 40
+    },
+    "Quantity": 1
   },
   {
-    "name": "Surging Sparks",
-    "price": 50
+    "Card": {
+      "type": "Grass",
+      "name": "Chikorita",
+      "price": 20
+    },
+    "Quantity": 1
   },
   {
-    "name": "Paldean Fates",
-    "price": 100
+    "Card": {
+      "type": "Ice",
+      "name": "Smoochum",
+      "price": 30
+    },
+    "Quantity": 1
   },
   {
-    "name": "Crown Zenith",
-    "price": 200
+    "Card": {
+      "type": "Ice",
+      "name": "Jynx",
+      "price": 50
+    },
+    "Quantity": 1
+  },
+  {
+    "Card": {
+      "type": "Normal",
+      "name": "Porygon",
+      "price": 20
+    },
+    "Quantity": 1
   }
 ]
 ```
+### GetCard
+
+
+1. Curl statement called.
+
+```bash
+curl -X 'GET' \
+  'https://pokemon-card-collection-5n9d.onrender.com/cards/Chikorita' \
+  -H 'accept: application/json'
+```
+
+2. Response
+
+```
+{
+  "name": "Chikorita",
+  "price": 20,
+  "type": "Grass",
+  "pack": "Paldean Fates"
+}
+```
+
 ### SellCard
 
 1. Curl statement called.
 
 ```bash
-curl -X 'GET' \
-  'https://pokemon-card-collection-kek1.onrender.com/catalog/' \
-  -H 'accept: application/json'
+curl -X 'POST' \
+  'https://pokemon-card-collection-5n9d.onrender.com/cards/users/3/sell/Chikorita' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "quantity": 1
+}'
 ```
 
 2. Response
 
 ```
-[
-  {
-    "name": "Shrouded Fable",
-    "price": 25
-  },
-  {
-    "name": "Surging Sparks",
-    "price": 50
-  },
-  {
-    "name": "Paldean Fates",
-    "price": 100
-  },
-  {
-    "name": "Crown Zenith",
-    "price": 200
-  }
-]
+{
+  "message": "Sold 1 Chikorita for 20 coins"
+}
 ```
 
 ### Purchase Pack
 1. Curl statement called.
 
 ```bash
-curl -X 'GET' \
-  'https://pokemon-card-collection-kek1.onrender.com/catalog/' \
-  -H 'accept: application/json'
+curl -X 'POST' \
+  'https://pokemon-card-collection-5n9d.onrender.com/packs/users/3/purchase_packs/Paldean%20Fates/1' \
+  -H 'accept: application/json' \
+  -H 'access_token: nitin' \
+  -d ''
 ```
 
 2. Response
 
 ```
-[
-  {
-    "name": "Shrouded Fable",
-    "price": 25
-  },
-  {
-    "name": "Surging Sparks",
-    "price": 50
-  },
-  {
-    "name": "Paldean Fates",
-    "price": 100
-  },
-  {
-    "name": "Crown Zenith",
-    "price": 200
-  }
-]
+{
+  "pack": "Paldean Fates",
+  "total_spent": 20
+}
 ```
 
 ### OpenPack
 1. Curl statement called.
 
 ```bash
-curl -X 'GET' \
-  'https://pokemon-card-collection-kek1.onrender.com/catalog/' \
-  -H 'accept: application/json'
+curl -X 'POST' \
+  'https://pokemon-card-collection-5n9d.onrender.com/packs/users/3/open_packs/Paldean%20Fates/1' \
+  -H 'accept: application/json' \
+  -H 'access_token: nitin' \
+  -d ''
 ```
 
 2. Response
@@ -281,30 +310,24 @@ curl -X 'GET' \
 ```
 [
   {
-    "name": "Shrouded Fable",
-    "price": 25
-  },
-  {
-    "name": "Surging Sparks",
-    "price": 50
-  },
-  {
-    "name": "Paldean Fates",
-    "price": 100
-  },
-  {
-    "name": "Crown Zenith",
-    "price": 200
+    "name": "Paldean Fates #1",
+    "cards": [
+      "Porygon-Z",
+      "Munchlax",
+      "Dragonite",
+      "Dragonite",
+      "Bayleef"
+    ]
   }
 ]
 ```
 
-### GetCard
+### Get Catalog
 1. Curl statement called.
 
 ```bash
 curl -X 'GET' \
-  'https://pokemon-card-collection-kek1.onrender.com/catalog/' \
+  'https://pokemon-card-collection-5n9d.onrender.com/packs/catalog/' \
   -H 'accept: application/json'
 ```
 
@@ -321,12 +344,12 @@ curl -X 'GET' \
     "price": 50
   },
   {
-    "name": "Paldean Fates",
-    "price": 100
-  },
-  {
     "name": "Crown Zenith",
     "price": 200
+  },
+  {
+    "name": "Paldean Fates",
+    "price": 20
   }
 ]
 ```
