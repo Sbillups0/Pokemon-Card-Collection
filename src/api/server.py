@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api import inventory, catalog, packs, user, collection, cards, decks # carts, bottler, barrels, admin, info
+from src.api import inventory, catalog, packs, user, collection, cards, decks, battle, display
 from starlette.middleware.cors import CORSMiddleware
 #NOTE FROM SHANE: STILL NEEDS TO BE MODIFIED, CONFUSED AS TO HOW.
 
@@ -31,6 +31,14 @@ tags_metadata = [
     {
         "name": "collection",
         "description": "View the current collection of cards owned by user, if Type is specified, only cards of that type will be returned."
+    },
+    {
+        "name": "battle",
+        "description": "Calculate whether the user wins a battle with a deck of their choice."
+    },
+    {
+        "name": "display",
+        "description": "Add a card from the user's collection to their personal display."
     }
 ]
 
@@ -63,7 +71,8 @@ app.include_router(user.router)
 app.include_router(decks.router)
 app.include_router(collection.router)
 app.include_router(cards.router)
-
+app.include_router(battle.router)
+app.include_router(display.router)
 
 
 @app.get("/")
