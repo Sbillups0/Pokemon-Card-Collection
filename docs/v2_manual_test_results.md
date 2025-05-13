@@ -62,7 +62,18 @@ curl -X 'POST' \
 ### Battle 
 
 1. Curl Statement called.
-2. Response
+```bash
+curl -X 'POST' \
+  'https://pokemon-card-collection-c5u3.onrender.com/battle/users/5/battle/fire_deck' \
+  -H 'accept: application/json' \
+  -H 'access_token: 123456789' \
+  -d ''
+```
+3. Response
+```
+"Victory!"
+```
+As a prize for their victory, Timmy wins 100 coins.
 
 ## Collector Example Flow
 Misty, a dedicated water Pokemon card collector, isn't interested in battling. Instead, she is looking very hard and closely for new cards to grow collection. Especially, the "Prismatic Evolution" pack. She's hoping to pull rare evolutions of classic Pokémon to expand her collection and display her favorites.
@@ -74,7 +85,7 @@ Misty decides to buy the Paldean Fates pack, open the pack, and display her favo
 - starts by calling `POST /users/misty_id/purchase_pack/Paldean Fates`
 - then Misty decides to open her new exciting pack, by calling `POST /users/misty_id/open_pack/Paldean Fates/1`
 - she decides to view her collection making another call `GET /users/misty_id/collection`
-= finally she shows off her favorite pull - Prismatic Umbreon by calling `POST /users/misty_id/display/Prismatic_Umbreon`
+= finally she shows off her favorite pull - Porygon by calling `POST /users/misty_id/display/Porygon`
 
 ## Testing results
 
@@ -219,7 +230,18 @@ curl -X 'POST' \
 ]
 ```
 ### Display
-
+1. Curl statement called.
+```bash
+curl -X 'POST' \
+  'https://pokemon-card-collection-c5u3.onrender.com/display/users/3/display/Porygon' \
+  -H 'accept: */*' \
+  -H 'access_token: 123456789' \
+  -d ''
+```
+2. Response
+```
+204: Successful Response
+```
 
 ## Selling and Expanding Collection Example Flow
 
@@ -232,7 +254,7 @@ AZ, an out of touch player wants to get back in the game. He doesn't have any ac
 - He decides to buy the pack - "Paldean Fates" by calling `POST /users/az/purchase_pack/"Paldean Fates"` with the money he got by selling "Chikorita" card
 - He opens the pack to see the card details by calling `POST /packs/users/misty_id/open_pack/"Paldean Fates"/1`
 - He calls `GET /packs/catalog"` as he is new to the game and wanted to know more details about Paldean Fates pack
-- He puts the card for display by calling `POST /users/az/display/"Armarouge` to let everyone know that he is ready for the game
+- He puts the card for display by calling `POST /users/az/display/"Porygon-Z"` to let everyone know that he is ready for the game
 - He continues researching and expanding further
 
 ## Testing results
@@ -420,4 +442,15 @@ curl -X 'GET' \
 ```
 
 ### Display Card
-
+1. Curl statement called.
+```bash
+curl -X 'POST' \
+  'https://pokemon-card-collection-c5u3.onrender.com/display/users/3/display/Porygon-Z' \
+  -H 'accept: */*' \
+  -H 'access_token: 123456789' \
+  -d ''
+```
+2. Response
+```
+204: Successful Response
+```
