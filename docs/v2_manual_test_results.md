@@ -20,12 +20,44 @@ The server is able to process his battle request and Timmy's Fire Lords fought m
 ### Get Collection of Fire Pokemon Cards
 
 1. Curl Statement called.
+```bash
+curl -X 'POST' \
+  'https://pokemon-card-collection-kek1.onrender.com/collection/5/get/Fire' \
+  -H 'accept: application/json' \
+  -H 'access_token: 123456789' \
+  -d ''
+```
 2. Response
+```
+[
+  {
+    "Card": {
+      "type": "Fire",
+      "name": "Typhlosion",
+      "price": 60
+    },
+    "Quantity": 1
+  }
+]
+```
 
 ### Create Deck
 
 1. Curl Statement called.
+```bash
+curl -X 'POST' \
+  'https://pokemon-card-collection-kek1.onrender.com/decks/users/5/create_deck/fire_deck' \
+  -H 'accept: application/json' \
+  -H 'access_token: 123456789' \
+  -H 'Content-Type: application/json' \
+  -d '[
+  "Typhlosion"
+]'
+```
 2. Response
+```
+"Typholosion"
+```
 
 ### Battle 
 
