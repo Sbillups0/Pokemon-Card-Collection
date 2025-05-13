@@ -1,3 +1,34 @@
+## Fire Deck Creation and Battle Example Flow
+
+Timmy the witiful battler wants to prep for his pokemon battle competition by creating a fire type deck using the most powerful pokemon.
+
+She filters the card collection such that only the fire type pokemon cards are shown using
+
+- GET /collection/timmy_id/get/Fire. Her call gives her the fire pokemon cards available: Charizard, Blaziken, Reshiram, Dragonite, and Flareon.
+
+She wants to use these pokemon to make a deck. She uses her user id along with
+
+- POST /users/timmy/create_deck/fire_deck/[Charizard, Blaziken, Reshiram, Dragonite, and Flareon].
+
+The server responds that the deck has been created and added to her account. Timmy is confident with all the strong cards in the deck and decides to go battle a user. He runs the API call
+-POST /users/timmy/battle/fire_deck.
+
+The server is able to process his battle request and Timmy's Fire Lords fought magnificiently and defeated the foe. The win has earned Timmy 600 Pokemon coins and a rare card reward.
+
+### Get Collection of Fire Pokemon Cards
+
+1. Curl Statement called.
+2. Response
+
+### Create Deck
+
+1. Curl Statement called.
+2. Response
+
+### Battle 
+
+1. Curl Statement called.
+2. Response
 
 ## Collector Example Flow
 Misty, a dedicated water Pokemon card collector, isn't interested in battling. Instead, she is looking very hard and closely for new cards to grow collection. Especially, the "Prismatic Evolution" pack. She's hoping to pull rare evolutions of classic Pokémon to expand her collection and display her favorites.
