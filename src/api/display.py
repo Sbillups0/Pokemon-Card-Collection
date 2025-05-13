@@ -49,7 +49,7 @@ def add_to_display(user_id: int, card_name: str):
     elif card_name in current_display:
         raise HTTPException(status_code=403, detail="Card is already in user's display")
     
-    card_id = in_collection[0]['card_id']
+    card_id = in_collection[0][1]
     with db.engine.begin() as connection:
         connection.execute(
             sqlalchemy.text(
