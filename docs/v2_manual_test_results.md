@@ -85,7 +85,7 @@ Misty decides to buy the Paldean Fates pack, open the pack, and display her favo
 - starts by calling `POST /users/misty_id/purchase_pack/Paldean Fates`
 - then Misty decides to open her new exciting pack, by calling `POST /users/misty_id/open_pack/Paldean Fates/1`
 - she decides to view her collection making another call `GET /users/misty_id/collection`
-= finally she shows off her favorite pull - Porygon by calling `POST /users/misty_id/display/Porygon`
+= finally she shows off her favorite pull - Porygon by calling `POST display/users/misty_id/Porygon`
 
 ## Testing results
 
@@ -233,7 +233,7 @@ curl -X 'POST' \
 1. Curl statement called.
 ```bash
 curl -X 'POST' \
-  'https://pokemon-card-collection-c5u3.onrender.com/display/users/3/display/Porygon' \
+  'https://pokemon-card-collection-c5u3.onrender.com/display/users/3/Porygon' \
   -H 'accept: */*' \
   -H 'access_token: 123456789' \
   -d ''
@@ -254,7 +254,7 @@ AZ, an out of touch player wants to get back in the game. He doesn't have any ac
 - He decides to buy the pack - "Paldean Fates" by calling `POST /users/az/purchase_pack/"Paldean Fates"` with the money he got by selling "Chikorita" card
 - He opens the pack to see the card details by calling `POST /packs/users/misty_id/open_pack/"Paldean Fates"/1`
 - He calls `GET /packs/catalog"` as he is new to the game and wanted to know more details about Paldean Fates pack
-- He puts the card for display by calling `POST /users/az/display/"Porygon-Z"` to let everyone know that he is ready for the game
+- He puts the card for display by calling `POST display/users/az/"Porygon-Z"` to let everyone know that he is ready for the game
 - He continues researching and expanding further
 
 ## Testing results
@@ -445,7 +445,7 @@ curl -X 'GET' \
 1. Curl statement called.
 ```bash
 curl -X 'POST' \
-  'https://pokemon-card-collection-c5u3.onrender.com/display/users/3/display/Porygon-Z' \
+  'https://pokemon-card-collection-c5u3.onrender.com/display/users/3/Porygon-Z' \
   -H 'accept: */*' \
   -H 'access_token: 123456789' \
   -d ''
