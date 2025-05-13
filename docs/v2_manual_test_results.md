@@ -228,7 +228,7 @@ AZ, an out of touch player wants to get back in the game. He doesn't have any ac
 - He gets the card details by calling `GET /collection/3/get`. AZ views his collection and decide what cards to sell. He sees the list of cards as - Dragonair, Chikorita etc.
 - He wanted to get the details of the card "Chikorita" by calling `GET /cards/Chikorita`
 - He decides to sell Chikorita which values 20 coins
-- He decides to sell - "". He calls `POST /users/3/sell/"Chikorita"` to sell his "Chikorita" card.
+- He calls `POST /users/3/sell/"Chikorita"` to sell his "Chikorita" card.
 - He decides to buy the pack - "Paldean Fates" by calling `POST /users/az/purchase_pack/"Paldean Fates"` with the money he got by selling "Chikorita" card
 - He opens the pack to see the card details by calling `POST /packs/users/misty_id/open_pack/"Paldean Fates"/1`
 - He calls `GET /packs/catalog"` as he is new to the game and wanted to know more details about Paldean Fates pack
