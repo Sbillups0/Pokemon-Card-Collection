@@ -158,7 +158,7 @@ curl -X 'POST' \
 
 ## Selling and Expanding Collection Example Flow
 
-AZ, an out of touch player wants to get back in the game. He doesn't have any collection. He wants to start a collection by getting some valuable and newer cards for his collection. He has some old cards, which he doesn't want any more and wants to sell it. AZ does the following:
+AZ, an out of touch player wants to get back in the game. He doesn't have any active collection. He had some bunch of cards from his old collection. He wants to start a new collection by getting some valuable and newer cards for his collection. He has some old cards from his old collection, which he doesn't want any more and wants to sell it. AZ does the following:
 
 - He gets the card details by calling `GET /collection/3/get`. AZ views his collection and decide what cards to sell. He sees the list of cards as - Dragonair, Chikorita etc.
 - He wanted to get the details of the card "Chikorita" by calling `GET /cards/Chikorita`
