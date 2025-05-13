@@ -31,7 +31,7 @@ def add_to_display(user_id: int, card_name: str):
                 ),
                 [{"card_name": card_name}]
             ).all()
-        current_display = [row.card_name for row in connection.execute(
+        current_display = [row[0] for row in connection.execute(
                 sqlalchemy.text(
                     """
                     SELECT c.name FROM cards as c 
