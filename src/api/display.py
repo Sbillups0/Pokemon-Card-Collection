@@ -34,7 +34,7 @@ def add_to_display(user_id: int, card_name: str):
         current_display = [row.card_name for row in connection.execute(
                 sqlalchemy.text(
                     """
-                    SELECT c.card_name FROM cards as c 
+                    SELECT c.name FROM cards as c 
                     INNER JOIN display as d ON d.card_id = c.id
                     WHERE d.user_id = :user_id
                     """
