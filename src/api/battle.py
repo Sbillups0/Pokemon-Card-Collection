@@ -28,6 +28,8 @@ def battle(user_id: int, deck_name: str) -> str:
                 ),
                 [{"deck_name": deck_name}]
             ).one()
+        if deck_id is None:
+            raise HTTPException(status_code=404, detail="Deck does not exist")
         deck_contents = connection.execute(
                 sqlalchemy.text(
                     """
