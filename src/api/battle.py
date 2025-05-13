@@ -27,7 +27,7 @@ def battle(user_id: int, deck_name: str) -> str:
                     "SELECT id FROM decks WHERE deck_name = :deck_name"
                 ),
                 [{"deck_name": deck_name}]
-            ).one()
+            ).one()[0]
         if deck_id is None:
             raise HTTPException(status_code=404, detail="Deck does not exist")
         deck_contents = connection.execute(
