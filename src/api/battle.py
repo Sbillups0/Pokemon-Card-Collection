@@ -45,10 +45,10 @@ def battle(user_id: int, deck_name: str) -> str:
     highest_value = 0
     lowest_value = 100
     for row in deck_contents:
-        if row['price'] > 100:
+        if row[1] > 100: #price
             card_value = 100
         else:
-            card_value = row['price']
+            card_value = row[1]
         
         if card_value > highest_value:
             highest_value = card_value
