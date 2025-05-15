@@ -44,9 +44,25 @@ def weighted_random_choice(item_list):
     chosen = random.choices(names, weights=weights, k=1)[0]
     return chosen
 
+def check_pack_exists(pack_name: str):
+    with db.engine.begin() as connection:
+        pack_data = connection.execute(
+            sqlalchemy.text("""
+                SELECT id FROM packs
+                WHERE name = :pack_name
+            """),
+            {"pack_name": pack_name}
+        ).fetchone()
+
+        if not pack_data:
+            raise HTTPException(status_code=404, detail="Pack not found")
+
+        return pack_data[0]
+
 @router.post("/users/{user_id}/open_packs/{pack_name}/{pack_quantity}", tags=["packs"], response_model = List[PackOpened])
 def open_packs(user_id: int, pack_name: str, pack_quantity: int):
         check_user_exists(user_id)
+        check_pack_exists(pack_name)
         #1 Checks if user has enough packs to open
         with db.engine.begin() as connection:
             owned_packs = connection.execute(
