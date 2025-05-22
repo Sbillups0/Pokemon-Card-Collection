@@ -30,6 +30,10 @@ class PackOpened(BaseModel):
     name: str
     cards: List[str]
 
+class RecommendedPack(BaseModel):
+    Pack: str
+    Currently_Missing: int
+
 def weighted_random_choice(item_list):
     # Get the maximum price to invert weights
     max_price = max(price for _, price in item_list)
@@ -58,6 +62,36 @@ def check_pack_exists(pack_name: str):
             raise HTTPException(status_code=404, detail="Pack not found")
 
         return pack_data[0]
+@router.get("/{user_id}/reccommended_pack", tags=["packs"], response_model=RecommendedPack)
+def recommended_pack(user_id: int):
+    #Looks at a user's current collection, and the total distrubition of cards in each pack, assigning a value to each pack based
+    #on how many cards the user owns from it, returning whichever pack has the highest value.
+    with db.engine.begin() as connection:
+        pack_list = connection.execute(sqlalchemy.text("SELECT name FROM packs")).scalars().all()
+    
+        results = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT
+                    p.id AS pack_id,
+                    p.name AS pack_name,
+                    p.price AS cost,
+                    COUNT(DISTINCT CASE WHEN col.user_id = :user_id THEN c.id END) AS unique_cards_owned
+                FROM packs p
+                LEFT JOIN cards c ON c.pack_id = p.id
+                LEFT JOIN collection col ON col.card_id = c.id AND col.user_id = :user_id
+                GROUP BY p.id, p.name
+                ORDER BY p.id
+                """     
+        ), {"user_id": user_id}).fetchall()
+        min = 99999999
+        for row in results:
+            print(f"Pack: {row.pack_name}, Unique Cards Owned: {row.unique_cards_owned}")
+            if row.unique_cards_owned < min:
+                min = row.unique_cards_owned
+                pack = row
+
+    return RecommendedPack(Pack=pack.pack_name,Currently_Missing=20 - pack.unique_cards_owned)
 
 @router.post("/users/{user_id}/open_packs/{pack_name}/{pack_quantity}", tags=["packs"], response_model = List[PackOpened])
 def open_packs(user_id: int, pack_name: str, pack_quantity: int):
