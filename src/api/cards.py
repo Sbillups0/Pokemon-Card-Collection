@@ -61,8 +61,6 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
 
         if not owned or owned.quantity < req.quantity:
             raise HTTPException(status_code=400, detail="Not enough cards to sell")
-        print("Owned Quantity:" + str(owned.quantity))
-        print("Required Quantity:"+ str(req.quantity))
         # Update collection
         if owned.quantity == req.quantity:
             conn.execute(sqlalchemy.text("""
@@ -85,12 +83,9 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
 
         # Update user's coins
         total_value = req.quantity * card_cost
-        print("Total Value" + str(total_value))
         result = conn.execute(sqlalchemy.text("""
             UPDATE users SET coins = coins + :value WHERE id = :user_id
         """), {"value": total_value, "user_id": user_id})
-        print(f"Sold {req.quantity} {card_name} for {total_value} coins")
-        print(f"Rows affected: {result.rowcount}")
 
     return {
         "message": f"Sold {req.quantity} {card_name} for {total_value} coins"
