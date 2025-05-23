@@ -9,7 +9,6 @@ router = APIRouter(
     tags=["cards"],
 )
 
-
 @router.get("/{card_name}")
 def get_card_by_name(card_name: str):
     with db.engine.connect() as conn:
@@ -90,3 +89,28 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
     return {
         "message": f"Sold {req.quantity} {card_name} for {total_value} coins"
     }
+
+@router.get("/allcards")
+def get_all_cards():
+    with db.engine.connect() as conn:
+        result = conn.execute(sqlalchemy.text("""
+            SELECT 
+                cards.name,
+                cards.type,
+                cards.price,
+                packs.name AS pack
+            FROM cards
+            JOIN packs ON cards.pack_id = packs.id
+        """)).fetchall()
+
+        if not result:
+            raise HTTPException(status_code=404, detail="No cards found")
+
+        return [
+            {
+                "name": row.name,
+                "price": row.price,
+                "type": row.type,
+                "pack": row.pack
+            } for row in result
+        ]
