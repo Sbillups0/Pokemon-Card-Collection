@@ -34,8 +34,7 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
             raise HTTPException(status_code=400, detail="A deck must contain exactly 5 cards")
 
         # Check user exists
-        if not check_user_exists(user_id):
-            raise HTTPException(status_code=404, detail="User not found")
+        check_user_exists(user_id)
 
         # Check if deck already exists
         existing_deck = connection.execute(
@@ -101,7 +100,6 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
                 sqlalchemy.text("""
                     INSERT INTO deck_cards (deck_id, card_name)
                     VALUES (:deck_id, :card_name)
-                    RETURNING id
                 """),
                 {"deck_id": deck_id, "card_name": card}
             )
