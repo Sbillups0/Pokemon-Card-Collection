@@ -71,7 +71,27 @@ RETURNING id
 
   All transaction are performed using db.engine.begin(). This ensures that whenever a database transaction is started it happens in the same transaction.
 
-  
+## display.py
+
+### Review comments
+- In display.py, in the first query, you should also filter by user_id, and use this: WHERE ca.name = :card_name AND co.user_id = :user_id. This makes it so that each user can only get their own collection.
+
+### Review comments not accepted
+- In display.py, there's no validation to prevent displaying the same card multiple times. A user could add the same card to their display multiple times. This doesn't make sense from a user interface perspective. The endpoint should check if a card is already being displayed before adding it again.
+
+     This is already taken care in the below code segment
+       if len(in_collection) == 0:
+        raise HTTPException(status_code=404, detail="Card not in user's collection")
+    elif len(current_display) == 4:
+        raise HTTPException(status_code=403, detail="User's display is full")
+    elif card_name in current_display:
+        raise HTTPException(status_code=403, detail="Card is already in user's display")
+
+
+## packs.py
+
+### Review comments
+
 
   
 
@@ -83,7 +103,6 @@ RETURNING id
 
 
 
-In display.py, in the first query, you should also filter by user_id, and use this: WHERE ca.name = :card_name AND co.user_id = :user_id. This makes it so that each user can only get their own collection.
 
 Packs.py: In the queries, you are using lists of dictionaries: [{"pack_name": pack_name}] and [{"user_id": user_id, "card_name": chosen_card}], the lists aren't needed, you can just make them plain dictionaries; {"pack_name": pack_name} and {"user_id": user_id, "card_name": chosen_card}.
 
@@ -266,5 +285,5 @@ In decks.py, the get_user_decks endpoint incorrectly returns a 404 error with me
 
 In cards.py, the sell_card_by_name endpoint allows selling cards that are currently in decks. This could lead to invalid decks where users have decks containing cards they no longer own. The endpoint should either prevent selling cards that are in decks or remove the cards from decks when sold.
 
-In display.py, there's no validation to prevent displaying the same card multiple times. A user could add the same card to their display multiple times. This doesn't make sense from a user interface perspective. The endpoint should check if a card is already being displayed before adding it again.
+
 
