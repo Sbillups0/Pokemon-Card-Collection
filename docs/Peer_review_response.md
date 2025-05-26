@@ -76,6 +76,8 @@ RETURNING id
 ### Review comments
 - In display.py, in the first query, you should also filter by user_id, and use this: WHERE ca.name = :card_name AND co.user_id = :user_id. This makes it so that each user can only get their own collection.
 
+### display.py has been updated for the above review comments 
+
 ### Review comments not accepted
 - In display.py, there's no validation to prevent displaying the same card multiple times. A user could add the same card to their display multiple times. This doesn't make sense from a user interface perspective. The endpoint should check if a card is already being displayed before adding it again.
 
@@ -86,7 +88,6 @@ RETURNING id
         raise HTTPException(status_code=403, detail="User's display is full")
     elif card_name in current_display:
         raise HTTPException(status_code=403, detail="Card is already in user's display")
-
 
 ## packs.py
 
@@ -123,36 +124,62 @@ RETURNING id
 
 
 In register user on line 31 the column for username is capitalizes as ‘Username’ which might be causing problems when registering a user that already exists. When trying to register with a username that exists a 500 internal server error occurs instead of raising the http exception that the username exists
+
 In sell by card name, it might be helpful to tell the user how many of that card they own in the exception itself since they can’t see the printed outputs
 
 In both sell card by name and get card by name when raising the error for card not found, it would be good to also include a sentence about how the name should be formatted (capitalized) because passing in the card name with all lowercase letters means that no card_id is returned
+
 It would be good to have a check for if it is a valid type or not in get_collection in collection.py
+
 In get collection it would be useful to have some kind of formatting function for the type that is passed in. When I try to look for the ‘normal’ cards I own I get an empty string but when I look for cards of type “Normal” I can see the cards. It would be useful to include a message on the formatting of the type and then also run a formatter function on what is passed in as well
+
 In creating deck when you check if a deck with that name exists make sure your exception specifies that the deck name already exists since it’s not necessarily that combination of cards
+
 There are redundant checks for invalid cards after getting deck id in create_deck in decks.py(lines 82-96 seem like a copy paste of lines 53-68 and don’t seem to serve any additional purpose)
+
 In create decks the check for non existent cards only checks if the card doesn't exist at all in the database. It should also check for if the user owns those cards.
+
 It would be nice if there was a check for if they already have the max amount of decks before creating a new deck instead of letting the creation of the deck go through and raising an error when trying to view the decks
+
 In the case where a user’s display is both full and they’re adding a card that is already in display it would be more useful to know that that card is already in the display than that their display is full so consider switching the ordering of the http exceptions
+
 In get_inventory it’s probably best if you check if the user exists or not (When I passed in a larger user_id (30) because my user_id was 12 it just returned an empty catalog; if the user doesn’t exist it would be nice to return a message saying that the user doesn’t exist)
+
 I would double check the code for check_pack_exists because when I tried opening a pack that was non existent by not capitalizing the pack name it resulted in a 500 internal server error instead of raising an exception (nothing stands out from this code so I’m not sure why the exception isn’t being raised) (The code works properly for purchasing a pack, so maybe you might just need to have that piece of code in the function for check_pack_exists)
 
 
 Not sure if this is intentional or not but I'm not able to view the battle and display endpoints on the render so I couldn’t test those endpoints
+
 Didn’t seem like there was a schema for the display table in schema.sql and the alembic revisions so make sure to add that somewhere (But from the code for the endpoint I think you would just need to have a user_id and card_id column and the primary key would be the tuple of both of those values)
+
 It would be cool to add a get display endpoint where you can pass in a username and see the cards they have in display and also an edit display endpoint
+
 The functions in collection.py should be marked as get endpoints instead of post endpoints since nothing is being added to the database (both of them are currently shown as post endpoints)
+
 Additionally for the endpoints in collection.py you don’t need /get in the endpoint url, having /{user_id} and /{user_id}/{type} would be fine
+
 In get collection by type it would be good to check if it is a valid type of pokemon before searching the database (You could create a new table for the different types and query that to get a type_id that you then use for the rest of the queries) (Also raising an exception if it is not a recognized type would be good instead of just returning an empty list so the user knows why they are receiving and empty list)
+
 For get catalog, when different packs are added, I don’t see the need to limit the amount of packs you’re showing that are available since it just would return them in some arbitrary order and there is no way to check if a user would be purchasing a pack that was actually on the catalog (If you wanted to limit the amount of packs shown, I’d recommend adding an active attribute to each pack which would determine if you offer it on the catalog and also if a user can purchase it)
+
 For deck_cards you wouldn’t need an id column -> the primary key would just be the (deck_id, card_name) tuple
+
 It would be helpful to check for combinations of cards in a deck for create_deck, you could create a new table that stores the different card combinations a user has in a deck (Where you insert 5 card id/names and it returns a deck id for the card combination (instead of just having a deck id returned on the deck name and user id combination))(You could always have the card insertion order be in ascending card id order/alphabetical order of card names so that if they’re trying to insert the same combination of cards you catch that)
+
 In create deck I was confused at first on how to pass in the five card names, it might be helpful if instead of taking in a list of strings you took in exactly five strings which would also help later on since you check that there is exactly five cards passed
+
 In create deck, in addition to the check for nonexistent cards you should also be checking for if the user owns those cards, right now users can create decks with cards as long as they exist even if they don't own any cards themselves
+
 When I look for what decks I have, it just returns the name of the deck - it would be nice to have an endpoint that allows me to see the cards are in which deck
+
 Since there is a limit to how many decks a user can have, it would be nice to also have endpoints for users to modify or delete their current decks
+
 It would be helpful to add an endpoint that returns all the current types of cards that exist so users know which card types they can search for
+
 Make sure to be consistent with the naming of the endpoints (ex. If you’re going to add a /user before every /{user_id} (Decks and packs have the endpoint urls implemented as decks/users/{user_id}/… and packs/users/{user_id}/… while collection and inventory just only have user_id (ex. /inventory/{user_id}/audit))
+
 Consider renaming the open packs endpoint from "/users/{user_id}/open_packs/{pack_name}/{pack_quantity}" to /open_packs/{user_id}/{pack_name}/{pack_quantity} (This way it’s clear that this packs.py endpoint is for when a pack is opened and the necessary information are the user id, pack name, and quantity)
+
 Also rename the purchase packs endpoint to be /purchase_packs/{user_id}/{pack_name}/{pack_quantity} for same reasoning as above and to maintain consistency
 
 If you only plan on allowing users to purchase packs and nothing else, you could simplify the endpoint url to just /catalog or if you will implement other kinds of purchases then make sure to rename the url so it is /catalog/packs instead of /packs/catalogs (By having packs before catalog it implies that it is a pack specific endpoint but it’s a catalog related endpoint)
