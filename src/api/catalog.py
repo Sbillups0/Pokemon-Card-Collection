@@ -21,23 +21,28 @@ class Pack(BaseModel):
 
 # Placeholder function, you will replace this with a database call
 def create_catalog() -> List[Pack]:
+    catalog_list = []
     with db.engine.begin() as connection:
-        row = connection.execute(
+        rows = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT name, price FROM packs
+                SELECT name, price
+                FROM packs
+                ORDER BY price DESC, name ASC
                 """
             )
         ).all()
-    catalog_list = []
-    #Loop through every pack in the database and add it to the catalog_list
-    for name, price in row:
-        if(len(catalog_list)<5):
-            catalog_list += [Pack(name=name, price=price)]
-        else:
-            #If catalog_list is full (Has 6 items) loop ends
-            break
 
+    if not rows:
+        print("No packs found in the database to populate the catalog.")
+        return catalog_list
+
+    # Limit catalog to max 6 items
+    for name, price in rows:
+        if len(catalog_list) < 6:
+            catalog_list.append(Pack(name=name, price=price))
+        else:
+            break
 
     return catalog_list
 
