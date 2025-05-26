@@ -1,12 +1,19 @@
-In battle.py, .one() could raise an Exception if no result is found before you check the existence of deck_id. Instead, I would execute the query and use fetchone(), then check if it is None before accessing result[0]. Like this:
+* Code Review Comments *
+  
+**In battle.py, .one() could raise an Exception if no result is found before you check the existence of deck_id. Instead, I would execute the query and use fetchone(), then check if it is None before accessing result[0]. Like this:
 result = connection.execute(...).fetchone()
 if result is None:
 raise Exception
-deck_id = result[0]
+deck_id = result[0]**
 
-In catalog.py, I would suggest in create_catalog to add either a warning log or raise an exception if the catalog returns empty.
+*** Updated battle.py for the review comments ***
 
-In create_catalog, I would suggest adding an ORDER BY for this query: SELECT name, price FROM packs to return the packs that are expected with that call and in an order that is pre-determined.
+
+** In catalog.py, I would suggest in create_catalog to add either a warning log or raise an exception if the catalog returns empty.
+
+In create_catalog, I would suggest adding an ORDER BY for this query: SELECT name, price FROM packs to return the packs that are expected with that call and in an order that is pre-determined. **
+
+*** catalog.py has been updated for the above 2 review comments ** 
 
 In collection.py, in two different routes, you use the function name get_collection, which may cause an error or lead to confusion when distinguishing between functions. I recommend changing one of these function names to be more descriptive for their respective routes.
 
