@@ -17,8 +17,7 @@ def check_user_exists(user_id: int):
         """), {"user_id": user_id}).scalar_one_or_none()
         if not existing_user:
             raise HTTPException(status_code=404, detail="User does not exist")
-        else:
-             return True
+
 
 
 @router.get("/allcards")
