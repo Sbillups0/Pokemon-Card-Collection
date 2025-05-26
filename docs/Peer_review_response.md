@@ -64,9 +64,11 @@ RETURNING id
 
 ### Review comments not accepted
 - Along similar lines in cards.py] rename the endpoint for sell_card_by_name from /users/{user_id}/sell/{card_name}to /sell/{user_id}/{card_name}
+
   This will not be RESTful. We are grouping all actions that are user centric under users. Changing this as per review comments will move away from this understanding
 
 - Not all database transactions are atomic. For example, sell_card_by_name in cards.py checks collection, updates or deletes from collection, and then updates the user's coins all in different transactions when they should be within the same transaction. That way if one fails they all get rolled back instead of having an inconsistent change of state.
+
   All transaction are performed using db.engine.begin(). This ensures that whenever a database transaction is started it happens in the same transaction.
 
   
