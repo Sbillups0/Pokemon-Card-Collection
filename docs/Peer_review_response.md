@@ -91,6 +91,20 @@ RETURNING id
 ## packs.py
 
 ### Review comments
+- Packs.py: In the queries, you are using lists of dictionaries: [{"pack_name": pack_name}] and [{"user_id": user_id, "card_name": chosen_card}], the lists aren't needed, you can just make them plain dictionaries; {"pack_name": pack_name} and {"user_id": user_id, "card_name": chosen_card}.
+- Packs.py: If owned packs is None, you should raise an exception as well. Change this: if owned_packs < pack_quantity: raise HTTPException(...) to if owned_packs is None or owned_packs < pack_quantity: raise HTTPException(...)
+- Packs.py: I would switch your for loop structure. You currently have: for i in range(pack_quantity): with db.engine.begin() as connection. I would switch it to: with db.engine.begin() as connection: for i in range(pack_quantity). This change in order would have the for loop inside the single db connection, making it so that a new connection isn't opened every iteration of the for loop.
+- In open packs you can simplify the first query if you just store the result of check_pack_exists in a variable since that function returns an id if the pack exists
+- Consider moving everything under opening packs for number of packs opened to be in the same transaction as everything else so that if something fails in this part it’ll also rollback the updates to quantity inventory
+- If you save the pack id, in your query that returns packs you can instead just use the pack id instead of the name (the query from lines 92-99 in packs.py)
+- In purchase packs you should check if the user exists earlier in the transaction (before getting pack data) so if the user doesn’t exist you’re not doing other queries from the database
+
+### packs.py has been updated for the above review commen
+
+
+- 
+
+
 
 
   
@@ -104,11 +118,6 @@ RETURNING id
 
 
 
-Packs.py: In the queries, you are using lists of dictionaries: [{"pack_name": pack_name}] and [{"user_id": user_id, "card_name": chosen_card}], the lists aren't needed, you can just make them plain dictionaries; {"pack_name": pack_name} and {"user_id": user_id, "card_name": chosen_card}.
-
-Packs.py: If owned packs is None, you should raise an exception as well. Change this: if owned_packs < pack_quantity: raise HTTPException(...) to if owned_packs is None or owned_packs < pack_quantity: raise HTTPException(...)
-
-Packs.py: I would switch your for loop structure. You currently have: for i in range(pack_quantity): with db.engine.begin() as connection. I would switch it to: with db.engine.begin() as connection: for i in range(pack_quantity). This change in order would have the for loop inside the single db connection, making it so that a new connection isn't opened every iteration of the for loop.
 
 
 
@@ -125,11 +134,8 @@ In create decks the check for non existent cards only checks if the card doesn't
 It would be nice if there was a check for if they already have the max amount of decks before creating a new deck instead of letting the creation of the deck go through and raising an error when trying to view the decks
 In the case where a user’s display is both full and they’re adding a card that is already in display it would be more useful to know that that card is already in the display than that their display is full so consider switching the ordering of the http exceptions
 In get_inventory it’s probably best if you check if the user exists or not (When I passed in a larger user_id (30) because my user_id was 12 it just returned an empty catalog; if the user doesn’t exist it would be nice to return a message saying that the user doesn’t exist)
-In open packs you can simplify the first query if you just store the result of check_pack_exists in a variable since that function returns an id if the pack exists
 I would double check the code for check_pack_exists because when I tried opening a pack that was non existent by not capitalizing the pack name it resulted in a 500 internal server error instead of raising an exception (nothing stands out from this code so I’m not sure why the exception isn’t being raised) (The code works properly for purchasing a pack, so maybe you might just need to have that piece of code in the function for check_pack_exists)
-Consider moving everything under opening packs for number of packs opened to be in the same transaction as everything else so that if something fails in this part it’ll also rollback the updates to quantity inventory
-If you save the pack id, in your query that returns packs you can instead just use the pack id instead of the name (the query from lines 92-99 in packs.py)
-In purchase packs you should check if the user exists earlier in the transaction (before getting pack data) so if the user doesn’t exist you’re not doing other queries from the database
+
 
 Not sure if this is intentional or not but I'm not able to view the battle and display endpoints on the render so I couldn’t test those endpoints
 Didn’t seem like there was a schema for the display table in schema.sql and the alembic revisions so make sure to add that somewhere (But from the code for the endpoint I think you would just need to have a user_id and card_id column and the primary key would be the tuple of both of those values)
