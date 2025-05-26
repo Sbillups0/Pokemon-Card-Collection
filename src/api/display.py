@@ -24,12 +24,12 @@ def add_to_display(user_id: int, card_name: str):
         in_collection = connection.execute(
                 sqlalchemy.text(
                     """
-                    SELECT * FROM collection as co 
-                    INNER JOIN cards as ca ON co.card_id = ca.id
-                    WHERE ca.name = :card_name
+                     SELECT * FROM collection as co 
+                        INNER JOIN cards as ca ON co.card_id = ca.id
+                        WHERE ca.name = :card_name AND co.user_id = :user_id
                     """
                 ),
-                [{"card_name": card_name}]
+                {"card_name": card_name, "user_id": user_id}
             ).all()
         current_display = [row[0] for row in connection.execute(
                 sqlalchemy.text(
@@ -39,7 +39,7 @@ def add_to_display(user_id: int, card_name: str):
                     WHERE d.user_id = :user_id
                     """
                 ),
-                [{"user_id": user_id}]
+                {"user_id": user_id}
             ).all()]
     
     if len(in_collection) == 0:
@@ -57,8 +57,7 @@ def add_to_display(user_id: int, card_name: str):
             INSERT INTO display VALUES (:user_id, :card_id)
             """
             ),
-            [{"user_id": user_id,
-              "card_id": card_id}]
+            {"user_id": user_id, "card_id": card_id}
         )
     
     
