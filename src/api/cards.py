@@ -9,6 +9,18 @@ router = APIRouter(
     tags=["cards"],
 )
 
+
+def check_user_exists(user_id: int):
+     with db.engine.begin() as connection:
+        existing_user = connection.execute(sqlalchemy.text("""
+            SELECT id FROM users WHERE id = :user_id
+        """), {"user_id": user_id}).scalar_one_or_none()
+        if not existing_user:
+            raise HTTPException(status_code=404, detail="User does not exist")
+        else:
+             return True
+
+
 @router.get("/allcards")
 def get_all_cards():
     with db.engine.connect() as conn:
@@ -65,6 +77,8 @@ class SellByNameRequest(BaseModel):
 @router.post("/users/{user_id}/sell/{card_name}")
 def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
     with db.engine.begin() as conn:
+        # Check user exists
+        check_user_exists(user_id)
         # Get card_id and price
         card = conn.execute(sqlalchemy.text("""
             SELECT id, price FROM cards WHERE name = :card_name
