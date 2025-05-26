@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from typing import List
 
@@ -23,17 +23,16 @@ class UserCreateResponse(BaseModel):
 def register_user(username: str):
     """Register a user. If the user already exists, raise an exception.
     If the user does not exist, add them to the users_table and return the id."""
-    print(username)
 
     with db.engine.begin() as conn:
         # Check if user already exists
         existing_user = conn.execute(
-            sqlalchemy.text("SELECT id FROM users WHERE Username = :username"),
+            sqlalchemy.text("SELECT id FROM users WHERE username = :username"),
             {"username": username}
         ).fetchone()
 
         if existing_user:
-            raise Exception("User already exists")
+            raise HTTPException(status_code=400, detail="Username already exists")
 
         # Insert new user with default Coins (e.g., 0) pass in Name return the id used
         result = conn.execute(
