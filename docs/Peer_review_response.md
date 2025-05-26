@@ -1,4 +1,4 @@
-* Code Review Comments *
+** Code Review Comments **
   
 **In battle.py, .one() could raise an Exception if no result is found before you check the existence of deck_id. Instead, I would execute the query and use fetchone(), then check if it is None before accessing result[0]. Like this:
 result = connection.execute(...).fetchone()
