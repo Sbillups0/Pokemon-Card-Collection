@@ -9,7 +9,9 @@ router = APIRouter(
     tags=["cards"],
 )
 
-
+class SellByNameRequest(BaseModel):
+    quantity: int
+    
 def check_user_exists(user_id: int):
      with db.engine.begin() as connection:
         existing_user = connection.execute(sqlalchemy.text("""
