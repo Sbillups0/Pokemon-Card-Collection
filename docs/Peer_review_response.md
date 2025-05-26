@@ -6,34 +6,28 @@
 - `.one()` can raise an exception if no result is found before checking for deck existence.
 - **Suggestion**: Use `.fetchone()` instead and check if the result is `None` before accessing the value.
 
-### Update Summary
-- Replaced `.one()` with `.fetchone()`
-- Added a conditional check:
-  ```python
-  result = connection.execute(...).fetchone()
-  if result is None:
-      raise HTTPException(status_code=404, detail="Deck does not exist")
-  deck_id = result[0]
+### battle.py has been update for the above review comment
 
 ## catalog.py
 
 ### Review comments
-In catalog.py, I would suggest in create_catalog to add either a warning log or raise an exception if the catalog returns empty.
-In create_catalog, I would suggest adding an ORDER BY for this query: SELECT name, price FROM packs to return the packs that are expected with that call and in an order that is pre-determined. **
+- In catalog.py, I would suggest in create_catalog to add either a warning log or raise an exception if the catalog returns empty.
+- In create_catalog, I would suggest adding an ORDER BY for this query: SELECT name, price FROM packs to return the packs that are expected with that call and in an order that is pre-determined. **
 
 ### catalog.py has been updated for the above 2 review comments 
-
 
 ## collection.py
 
 ### Review comments
 
-In collection.py, in two different routes, you use the function name get_collection, which may cause an error or lead to confusion when distinguishing between functions. I recommend changing one of these function names to be more descriptive for their respective routes.
-
-I also think that both routes using get_collection should be @router.get instead of @router.post because they are read-only.
+- In collection.py, in two different routes, you use the function name get_collection, which may cause an error or lead to confusion when distinguishing between functions. I recommend changing one of these function names to be more descriptive for their respective routes.
+- I also think that both routes using get_collection should be @router.get instead of @router.post because they are read-only.
 
 ### collection.py has been updated for the above 2 review comments 
 
+## decks.py
+
+### Review comments
 In decks.py, you raise an exception like this: if not check_user_exists(user_id):
 raise HTTPException(status_code=404, detail="User not found")
 This is redundant because check_user_exists already raises an exception on its own, so it can be called just like this: check_user_exists(user_id)
