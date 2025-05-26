@@ -14,7 +14,7 @@
 - In catalog.py, I would suggest in create_catalog to add either a warning log or raise an exception if the catalog returns empty.
 - In create_catalog, I would suggest adding an ORDER BY for this query: SELECT name, price FROM packs to return the packs that are expected with that call and in an order that is pre-determined. **
 
-### catalog.py has been updated for the above 2 review comments 
+### catalog.py has been updated for the above review comments 
 
 ## collection.py
 
@@ -23,7 +23,7 @@
 - In collection.py, in two different routes, you use the function name get_collection, which may cause an error or lead to confusion when distinguishing between functions. I recommend changing one of these function names to be more descriptive for their respective routes.
 - I also think that both routes using get_collection should be @router.get instead of @router.post because they are read-only.
 
-### collection.py has been updated for the above 2 review comments 
+### collection.py has been updated for the above review comments 
 
 ## decks.py
 
@@ -39,7 +39,47 @@ VALUES (:deck_id, :card_name)
 RETURNING id
 """), but id is never used. You can either use id for something later, or you don't need to return it.
 
-In cards.py, in the sell_card_by_name function, instead of using the design of if owned.quantity == req.quantity: DELETE else: UPDATE, I would combine it into one query of UPDATE... RETURNING, which seems to make it clearer and more readable.
+### collection.py has been updated for the above review comments 
+
+## cards.py
+
+### Review comments
+- In cards.py, in the sell_card_by_name function, instead of using the design of if owned.quantity == req.quantity: DELETE else: UPDATE, I would combine it into one query of UPDATE... RETURNING, which seems to make it clearer and more readable.
+- There is duplicated code in cards.py and packs.py. This can be rewritten as a function that both can call individually.
+
+     In cards.py
+    def check_user_exists(user_id: int):
+        with db.engine.connect() as conn:
+            result = conn.execute(
+                sqlalchemy.text("SELECT id FROM users WHERE id = :user_id"),
+                {"user_id": user_id}
+            ).fetchone()
+            if not result:
+                raise HTTPException(status_code=404, detail="User not found")
+  - Also move up where you check if the user exists or not in sell by card name before checking their quantity; The not enough cards exception might be caused by the user not existing/bad input
+  - In cards.py, the sell_card_by_name endpoint allows selling cards that are currently in decks. This could lead to invalid decks where users have decks containing cards they no longer own. The endpoint should either prevent selling cards that are in decks or remove the cards from decks when sold. (need to be addressed)
+  
+
+### cards.py has been updated for the above review comments 
+
+### Review comments not accepted
+- Along similar lines in cards.py] rename the endpoint for sell_card_by_name from /users/{user_id}/sell/{card_name}to /sell/{user_id}/{card_name}
+  This will not be RESTful. We are grouping all actions that are user centric under users. Changing this as per review comments will move away from this understanding
+
+- Not all database transactions are atomic. For example, sell_card_by_name in cards.py checks collection, updates or deletes from collection, and then updates the user's coins all in different transactions when they should be within the same transaction. That way if one fails they all get rolled back instead of having an inconsistent change of state.
+  All transaction are performed using db.engine.begin(). This ensures that whenever a database transaction is started it happens in the same transaction.
+
+  
+
+  
+
+
+
+
+
+
+
+
 
 In display.py, in the first query, you should also filter by user_id, and use this: WHERE ca.name = :card_name AND co.user_id = :user_id. This makes it so that each user can only get their own collection.
 
@@ -54,7 +94,7 @@ Packs.py: I would switch your for loop structure. You currently have: for i in r
 
 In register user on line 31 the column for username is capitalizes as ‘Username’ which might be causing problems when registering a user that already exists. When trying to register with a username that exists a 500 internal server error occurs instead of raising the http exception that the username exists
 In sell by card name, it might be helpful to tell the user how many of that card they own in the exception itself since they can’t see the printed outputs
-Also move up where you check if the user exists or not in sell by card name before checking their quantity; The not enough cards exception might be caused by the user not existing/bad input
+
 In both sell card by name and get card by name when raising the error for card not found, it would be good to also include a sentence about how the name should be formatted (capitalized) because passing in the card name with all lowercase letters means that no card_id is returned
 It would be good to have a check for if it is a valid type or not in get_collection in collection.py
 In get collection it would be useful to have some kind of formatting function for the type that is passed in. When I try to look for the ‘normal’ cards I own I get an empty string but when I look for cards of type “Normal” I can see the cards. It would be useful to include a message on the formatting of the type and then also run a formatter function on what is passed in as well
@@ -87,7 +127,7 @@ It would be helpful to add an endpoint that returns all the current types of car
 Make sure to be consistent with the naming of the endpoints (ex. If you’re going to add a /user before every /{user_id} (Decks and packs have the endpoint urls implemented as decks/users/{user_id}/… and packs/users/{user_id}/… while collection and inventory just only have user_id (ex. /inventory/{user_id}/audit))
 Consider renaming the open packs endpoint from "/users/{user_id}/open_packs/{pack_name}/{pack_quantity}" to /open_packs/{user_id}/{pack_name}/{pack_quantity} (This way it’s clear that this packs.py endpoint is for when a pack is opened and the necessary information are the user id, pack name, and quantity)
 Also rename the purchase packs endpoint to be /purchase_packs/{user_id}/{pack_name}/{pack_quantity} for same reasoning as above and to maintain consistency
-Along similar lines in cards.py] rename the endpoint for sell_card_by_name from /users/{user_id}/sell/{card_name}to /sell/{user_id}/{card_name}
+
 If you only plan on allowing users to purchase packs and nothing else, you could simplify the endpoint url to just /catalog or if you will implement other kinds of purchases then make sure to rename the url so it is /catalog/packs instead of /packs/catalogs (By having packs before catalog it implies that it is a pack specific endpoint but it’s a catalog related endpoint)
 Simplify the endpoint url in users.py from users/users/register to just users/register
 
@@ -192,15 +232,7 @@ For instance battle.py, collection.py, display.py could use a small documentatio
 
 There is duplicated code in cards.py and packs.py. This can be rewritten as a function that both can call individually.
 
-# In cards.py
-def check_user_exists(user_id: int):
-    with db.engine.connect() as conn:
-        result = conn.execute(
-            sqlalchemy.text("SELECT id FROM users WHERE id = :user_id"),
-            {"user_id": user_id}
-        ).fetchone()
-        if not result:
-            raise HTTPException(status_code=404, detail="User not found")
+
 
 # In packs.py
 def check_user_exists(user_id: int):
