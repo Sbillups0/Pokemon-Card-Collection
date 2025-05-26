@@ -30,8 +30,8 @@ def check_user_exists(user_id: int):
         else:
              return True
     
-@router.post("/{user_id}/get/{type}", tags=["collection"], response_model = List[CollectionInfo])
-def get_collection(user_id: int, type: str):
+@router.get("/{user_id}/get/{type}", tags=["collection"], response_model = List[CollectionInfo])
+def get_collection_by_type(user_id: int, type: str):
         check_user_exists(user_id)
         collection = []
         with db.engine.begin() as connection: 
@@ -46,8 +46,8 @@ def get_collection(user_id: int, type: str):
                 collection.append(CollectionInfo(Card = Card(name=name, type=type, price=price), Quantity=quantity))
         return collection
 
-@router.post("/{user_id}/get", tags=["collection"], response_model = List[CollectionInfo])
-def get_collection(user_id: int):
+@router.get("/{user_id}/get", tags=["collection"], response_model = List[CollectionInfo])
+def get_full_collection(user_id: int):
         check_user_exists(user_id)
         collection = []
         with db.engine.begin() as connection: 
