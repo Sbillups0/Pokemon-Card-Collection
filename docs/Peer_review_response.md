@@ -57,7 +57,9 @@ RETURNING id
             if not result:
                 raise HTTPException(status_code=404, detail="User not found")
   - Also move up where you check if the user exists or not in sell by card name before checking their quantity; The not enough cards exception might be caused by the user not existing/bad input
-  - In cards.py, the sell_card_by_name endpoint allows selling cards that are currently in decks. This could lead to invalid decks where users have decks containing cards they no longer own. The endpoint should either prevent selling cards that are in decks or remove the cards from decks when sold. (need to be addressed)
+  - In cards.py, the sell_card_by_name endpoint allows selling cards that are currently in decks. This could lead to invalid decks where users have decks containing cards they no longer own. The endpoint should either prevent selling cards that are in decks or remove the cards from decks when sold.
+  - In sell by card name, it might be helpful to tell the user how many of that card they own in the exception itself since they can’t see the printed outputs
+  - In both sell card by name and get card by name when raising the error for card not found, it would be good to also include a sentence about how the name should be formatted (capitalized) because passing in the card name with all lowercase letters means that no card_id is returned
   
 
 ### cards.py has been updated for the above review comments 
@@ -80,6 +82,7 @@ RETURNING id
 
 ### Review comments not accepted
 - In display.py, there's no validation to prevent displaying the same card multiple times. A user could add the same card to their display multiple times. This doesn't make sense from a user interface perspective. The endpoint should check if a card is already being displayed before adding it again.
+- In the case where a user’s display is both full and they’re adding a card that is already in display it would be more useful to know that that card is already in the display than that their display is full so consider switching the ordering of the http exceptions
 
      This is already taken care in the below code segment
        if len(in_collection) == 0:
@@ -99,8 +102,41 @@ RETURNING id
 - Consider moving everything under opening packs for number of packs opened to be in the same transaction as everything else so that if something fails in this part it’ll also rollback the updates to quantity inventory
 - If you save the pack id, in your query that returns packs you can instead just use the pack id instead of the name (the query from lines 92-99 in packs.py)
 - In purchase packs you should check if the user exists earlier in the transaction (before getting pack data) so if the user doesn’t exist you’re not doing other queries from the database
+- def check_user_exists(user_id: int):
+    with db.engine.connect() as conn:
+        user = conn.execute(
+            sqlalchemy.text("SELECT id FROM users WHERE id = :id"),
+            {"id": user_id}
+        ).fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+In packs.py you have a for loop with the database connection inside of it. If I'm not mistaken this is much worse than having the for loop inside the database connection block.
 
-### packs.py has been updated for the above review commen
+for i in range(pack_quantity):
+    with db.engine.begin() as connection:
+        packs = connection.execute(...)
+There is a possible race condition in the open_packs function. I believe the problem can occur in the following scenario:
+Two requests come in at about the same time.
+
+### packs.py has been updated for the above review comments
+
+## user.py
+
+### Review comments
+- In register user on line 31 the column for username is capitalizes as ‘Username’ which might be causing problems when registering a user that already exists. When trying to register with a username that exists a 500 internal server error occurs instead of raising the http exception that the username exists
+
+### user.py has been updated for the above review comments
+
+## inventory.py
+
+### Review comments
+- I think that the Get Inventory endpoint should also return how many coins I have. It was hard to know how many coins I had when testing locally.
+- In get_inventory it’s probably best if you check if the user exists or not (When I passed in a larger user_id (30) because my user_id was 12 it just returned an empty catalog; if the user doesn’t exist it would be nice to return a message saying that the user doesn’t exist)
+- The Get Inventory endpoint should return the user's coin balance. Currently, there's no easy way to check how many coins you have, which makes it difficult to plan purchases or know when you can afford packs. As of right now I just have to trial and error my way through it.
+
+### inventory.py has been updated for the above review comments
+
+
 
 
 - 
@@ -123,11 +159,9 @@ RETURNING id
 
 
 
-In register user on line 31 the column for username is capitalizes as ‘Username’ which might be causing problems when registering a user that already exists. When trying to register with a username that exists a 500 internal server error occurs instead of raising the http exception that the username exists
 
-In sell by card name, it might be helpful to tell the user how many of that card they own in the exception itself since they can’t see the printed outputs
 
-In both sell card by name and get card by name when raising the error for card not found, it would be good to also include a sentence about how the name should be formatted (capitalized) because passing in the card name with all lowercase letters means that no card_id is returned
+
 
 It would be good to have a check for if it is a valid type or not in get_collection in collection.py
 
@@ -141,9 +175,8 @@ In create decks the check for non existent cards only checks if the card doesn't
 
 It would be nice if there was a check for if they already have the max amount of decks before creating a new deck instead of letting the creation of the deck go through and raising an error when trying to view the decks
 
-In the case where a user’s display is both full and they’re adding a card that is already in display it would be more useful to know that that card is already in the display than that their display is full so consider switching the ordering of the http exceptions
 
-In get_inventory it’s probably best if you check if the user exists or not (When I passed in a larger user_id (30) because my user_id was 12 it just returned an empty catalog; if the user doesn’t exist it would be nice to return a message saying that the user doesn’t exist)
+
 
 I would double check the code for check_pack_exists because when I tried opening a pack that was non existent by not capitalizing the pack name it resulted in a 500 internal server error instead of raising an exception (nothing stands out from this code so I’m not sure why the exception isn’t being raised) (The code works properly for purchasing a pack, so maybe you might just need to have that piece of code in the function for check_pack_exists)
 
@@ -186,7 +219,6 @@ If you only plan on allowing users to purchase packs and nothing else, you could
 Simplify the endpoint url in users.py from users/users/register to just users/register
 
 
-I think that the Get Inventory endpoint should also return how many coins I have. It was hard to know how many coins I had when testing locally.
 
 I would add rarities to the cards or show probabilities of pulling certain cards to add an element of excitement when getting rarer cards.
 
@@ -213,7 +245,6 @@ It would be cool to see potential cards that can be pulled from each pack. It co
 If you want to add additional endpoints, I think that a profile that returns unopened packs, total cards, the amount of coins, and your card deck would be useful as well.
 
 
-The Get Inventory endpoint should return the user's coin balance. Currently, there's no easy way to check how many coins you have, which makes it difficult to plan purchases or know when you can afford packs. As of right now I just have to trial and error my way through it.
 
 The collection endpoint could use more filtering options. Currently, we can only filter by type, but it would be useful to:
 
@@ -289,21 +320,7 @@ There is duplicated code in cards.py and packs.py. This can be rewritten as a fu
 
 
 # In packs.py
-def check_user_exists(user_id: int):
-    with db.engine.connect() as conn:
-        user = conn.execute(
-            sqlalchemy.text("SELECT id FROM users WHERE id = :id"),
-            {"id": user_id}
-        ).fetchone()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-In packs.py you have a for loop with the database connection inside of it. If I'm not mistaken this is much worse than having the for loop inside the database connection block.
 
-for i in range(pack_quantity):
-    with db.engine.begin() as connection:
-        packs = connection.execute(...)
-There is a possible race condition in the open_packs function. I believe the problem can occur in the following scenario:
-Two requests come in at about the same time.
 
 User has 10 packs
 Request A checks quantity -> sees 10 packs, which is enough for 7
