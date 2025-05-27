@@ -28,7 +28,14 @@ class Deck(BaseModel):
 
 @router.post("/users/{user_id}/create_deck/{deck_name}")
 def create_deck(user_id: int, deck_name: str, cards: List[str]):
+    """
+    Create a deck for a user.
     
+    Rules:
+    - Exactly 5 cards must be provided.
+    - Cards must exist in the card database.
+    - User must own enough copies of each card to include them in the deck.
+    """
     with db.engine.begin() as connection:
         if len(cards) != 5:
             raise HTTPException(status_code=400, detail="A deck must contain exactly 5 cards")
