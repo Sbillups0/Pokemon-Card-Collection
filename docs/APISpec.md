@@ -37,5 +37,8 @@ API Specification
 12. Get Recommended (user_id) (MORE COMPLEX ENDPOINT)
    - Checks the user's current collection of cards and compares it to each pack in the catalog currently. Then, it recommends a pack based on the number of missing cards. (Whichever pack they have the least cards from)
    - GET /packs/user_id/recommended
+13. Get All Pokemon Cards (get_all_cards) (MORE COMPLEX ENDPOINT)
+   - Lists out all of the Pokemon Cards available with the price and pack
+   - GET /cards/allcards
 
 
