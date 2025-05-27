@@ -32,12 +32,16 @@ In decks.py, you raise an exception like this: if not check_user_exists(user_id)
 raise HTTPException(status_code=404, detail="User not found")
 This is redundant because check_user_exists already raises an exception on its own, so it can be called just like this: check_user_exists(user_id)
 
-Also in create_deck, you have this query: connection.execute(
+Also in create_deck, you have this query: 
+```
+connection.execute(
 sqlalchemy.text("""
 INSERT INTO deck_cards (deck_id, card_name)
 VALUES (:deck_id, :card_name)
 RETURNING id
-"""), but id is never used. You can either use id for something later, or you don't need to return it.
+"""),
+```
+but id is never used. You can either use id for something later, or you don't need to return it.
 
 ### collection.py has been updated for the above review comments 
 
@@ -48,6 +52,7 @@ RETURNING id
 - There is duplicated code in cards.py and packs.py. This can be rewritten as a function that both can call individually.
 
      In cards.py
+  ```
     def check_user_exists(user_id: int):
         with db.engine.connect() as conn:
             result = conn.execute(
@@ -56,6 +61,7 @@ RETURNING id
             ).fetchone()
             if not result:
                 raise HTTPException(status_code=404, detail="User not found")
+  ```
   - Also move up where you check if the user exists or not in sell by card name before checking their quantity; The not enough cards exception might be caused by the user not existing/bad input
   - In cards.py, the sell_card_by_name endpoint allows selling cards that are currently in decks. This could lead to invalid decks where users have decks containing cards they no longer own. The endpoint should either prevent selling cards that are in decks or remove the cards from decks when sold.
   - In sell by card name, it might be helpful to tell the user how many of that card they own in the exception itself since they can’t see the printed outputs
@@ -86,12 +92,14 @@ RETURNING id
 
      This is already taken care in the below code segment
   
-    ```if len(in_collection) == 0:
+    ```
+    if len(in_collection) == 0:
         raise HTTPException(status_code=404, detail="Card not in user's collection")
     elif len(current_display) == 4:
         raise HTTPException(status_code=403, detail="User's display is full")
     elif card_name in current_display:
-        raise HTTPException(status_code=403, detail="Card is already in user's display")```
+        raise HTTPException(status_code=403, detail="Card is already in user's display")
+    ```
 
 ## packs.py
 
@@ -103,7 +111,9 @@ RETURNING id
 - Consider moving everything under opening packs for number of packs opened to be in the same transaction as everything else so that if something fails in this part it’ll also rollback the updates to quantity inventory
 - If you save the pack id, in your query that returns packs you can instead just use the pack id instead of the name (the query from lines 92-99 in packs.py)
 - In purchase packs you should check if the user exists earlier in the transaction (before getting pack data) so if the user doesn’t exist you’re not doing other queries from the database
-- def check_user_exists(user_id: int):
+-
+ ```
+def check_user_exists(user_id: int):
     with db.engine.connect() as conn:
         user = conn.execute(
             sqlalchemy.text("SELECT id FROM users WHERE id = :id"),
@@ -111,11 +121,14 @@ RETURNING id
         ).fetchone()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+```
 In packs.py you have a for loop with the database connection inside of it. If I'm not mistaken this is much worse than having the for loop inside the database connection block.
 
+```
 for i in range(pack_quantity):
     with db.engine.begin() as connection:
         packs = connection.execute(...)
+```
 There is a possible race condition in the open_packs function. I believe the problem can occur in the following scenario:
 Two requests come in at about the same time.
 
