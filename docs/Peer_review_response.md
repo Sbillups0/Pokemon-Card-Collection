@@ -30,30 +30,8 @@
 - Get Collection: It would be nice to have the collection endpoint filter by something, this could be type, name, or price.
 - No way to see total collection value
 
-
-
-
 ### collection.py has been updated for the above review comments 
 
-## decks.py
-
-### Review comments
-In decks.py, you raise an exception like this: if not check_user_exists(user_id):
-raise HTTPException(status_code=404, detail="User not found")
-This is redundant because check_user_exists already raises an exception on its own, so it can be called just like this: check_user_exists(user_id)
-
-Also in create_deck, you have this query: 
-```
-connection.execute(
-sqlalchemy.text("""
-INSERT INTO deck_cards (deck_id, card_name)
-VALUES (:deck_id, :card_name)
-RETURNING id
-"""),
-```
-but id is never used. You can either use id for something later, or you don't need to return it.
-
-### decks.py has been updated for the above review comments 
 
 ## cards.py
 
@@ -88,7 +66,7 @@ but id is never used. You can either use id for something later, or you don't ne
 
 - Not all database transactions are atomic. For example, sell_card_by_name in cards.py checks collection, updates or deletes from collection, and then updates the user's coins all in different transactions when they should be within the same transaction. That way if one fails they all get rolled back instead of having an inconsistent change of state.
 
-  All transaction are performed using db.engine.begin(). This ensures that whenever a database transaction is started it happens in the same transaction.
+  All transaction are performed using db.engine.begin(). This ensures that whenever a database transaction is started it happens in the same transaction. The entire sell_card_by_name is one in one single transaction.
 
 ## display.py
 
@@ -163,6 +141,38 @@ Two requests come in at about the same time.
 ### inventory.py has been updated for the above review comments
 
 
+## decks.py
+
+### Review comments
+- In decks.py, you raise an exception like this: if not check_user_exists(user_id):
+raise HTTPException(status_code=404, detail="User not found")
+This is redundant because check_user_exists already raises an exception on its own, so it can be called just like this: check_user_exists(user_id)
+
+- Also in create_deck, you have this query: 
+```
+connection.execute(
+sqlalchemy.text("""
+INSERT INTO deck_cards (deck_id, card_name)
+VALUES (:deck_id, :card_name)
+RETURNING id
+"""),
+```
+but id is never used. You can either use id for something later, or you don't need to return it.
+
+- In creating deck when you check if a deck with that name exists make sure your exception specifies that the deck name already exists since it’s not necessarily that combination of cards
+- There are redundant checks for invalid cards after getting deck id in create_deck in decks.py(lines 82-96 seem like a copy paste of lines 53-68 and don’t seem to serve any additional purpose)
+
+
+
+### decks.py has been updated for the above review comments
+
+### Review comments not accepted
+- In create deck I was confused at first on how to pass in the five card names, it might be helpful if instead of taking in a list of strings you took in exactly five strings which would also help later on since you check that there is exactly five cards passed
+   if we change the list of strings to individual strings, we will lose the json format and also in the future, if we want to increase the number of cards from 5 to a different number, we need to revert back the change.
+
+
+
+
 ============================================================================================================================================================================================
 
 
@@ -195,11 +205,8 @@ Two requests come in at about the same time.
 
 
 
-In creating deck when you check if a deck with that name exists make sure your exception specifies that the deck name already exists since it’s not necessarily that combination of cards
 
-There are redundant checks for invalid cards after getting deck id in create_deck in decks.py(lines 82-96 seem like a copy paste of lines 53-68 and don’t seem to serve any additional purpose)
 
-In create decks the check for non existent cards only checks if the card doesn't exist at all in the database. It should also check for if the user owns those cards.
 
 It would be nice if there was a check for if they already have the max amount of decks before creating a new deck instead of letting the creation of the deck go through and raising an error when trying to view the decks
 
@@ -224,7 +231,7 @@ For deck_cards you wouldn’t need an id column -> the primary key would just be
 
 It would be helpful to check for combinations of cards in a deck for create_deck, you could create a new table that stores the different card combinations a user has in a deck (Where you insert 5 card id/names and it returns a deck id for the card combination (instead of just having a deck id returned on the deck name and user id combination))(You could always have the card insertion order be in ascending card id order/alphabetical order of card names so that if they’re trying to insert the same combination of cards you catch that)
 
-In create deck I was confused at first on how to pass in the five card names, it might be helpful if instead of taking in a list of strings you took in exactly five strings which would also help later on since you check that there is exactly five cards passed
+
 
 In create deck, in addition to the check for nonexistent cards you should also be checking for if the user owns those cards, right now users can create decks with cards as long as they exist even if they don't own any cards themselves
 
