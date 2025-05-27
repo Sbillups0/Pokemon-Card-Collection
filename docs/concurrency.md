@@ -1,28 +1,28 @@
 ## Case 1:
 
-# Scenario: 
-# Phenomenon:
+#### Scenario: 
+#### Phenomenon:
 
-# Sequence Diagram:
+#### Sequence Diagram:
 
-# Proposed solution:
+#### Proposed solution:
 
 
 ## Case 2:
 
-# Scenario: 
-# Phenomenon:
+#### Scenario: 
+#### Phenomenon:
 
-# Sequence Diagram:
+#### Sequence Diagram:
 
-# Proposed solution:
+#### Proposed solution:
 
 
 ## Case 3:
 
-# Scenario: 
-# Phenomenon:
+#### Scenario: 
+#### Phenomenon:
 
-# Sequence Diagram:
+#### Sequence Diagram:
 
-# Proposed solution:
+#### Proposed solution:
