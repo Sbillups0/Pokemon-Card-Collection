@@ -12,9 +12,16 @@
 
 ### Review comments
 - In catalog.py, I would suggest in create_catalog to add either a warning log or raise an exception if the catalog returns empty.
-- In create_catalog, I would suggest adding an ORDER BY for this query: SELECT name, price FROM packs to return the packs that are expected with that call and in an order that is pre-determined. **
+- In create_catalog, I would suggest adding an ORDER BY for this query: SELECT name, price FROM packs to return the packs that are expected with that call and in an order that is pre-determined.
+- If you only plan on allowing users to purchase packs and nothing else, you could simplify the endpoint url to just /catalog or if you will implement other kinds of purchases then make sure to rename the url so it is /catalog/packs instead of /packs/catalogs (By having packs before catalog it implies that it is a pack specific endpoint but it’s a catalog related endpoint)
 
 ### catalog.py has been updated for the above review comments 
+
+### Review comments not accepted
+- For get catalog, when different packs are added, I don’t see the need to limit the amount of packs you’re showing that are available since it just would return them in some arbitrary order and there is no way to check if a user would be purchasing a pack that was actually on the catalog (If you wanted to limit the amount of packs shown, I’d recommend adding an active attribute to each pack which would determine if you offer it on the catalog and also if a user can purchase it)
+
+       Currently 6 packs are shown are the top 6 packs with maximum price. Even though there are other packs available, we are only showing the Top 6 packs based on price. Users have visibility to only those 6 packs. If we don't limit it will be a huge number of packs.
+       
 
 ## collection.py
 
@@ -101,7 +108,7 @@
 - If you save the pack id, in your query that returns packs you can instead just use the pack id instead of the name (the query from lines 92-99 in packs.py)
 - In purchase packs you should check if the user exists earlier in the transaction (before getting pack data) so if the user doesn’t exist you’re not doing other queries from the database
 - This isn't too important but in packs.py the parameter dictionaries are wrapped in lists which is unecessary since we can only open one type of pack at a time.
--
+- The below code
  ```
 def check_user_exists(user_id: int):
     with db.engine.connect() as conn:
@@ -128,6 +135,7 @@ Two requests come in at about the same time.
 
 ### Review comments
 - In register user on line 31 the column for username is capitalizes as ‘Username’ which might be causing problems when registering a user that already exists. When trying to register with a username that exists a 500 internal server error occurs instead of raising the http exception that the username exists
+- Simplify the endpoint url in users.py from users/users/register to just users/register
 
 ### user.py has been updated for the above review comments
 
@@ -161,6 +169,8 @@ but id is never used. You can either use id for something later, or you don't ne
 
 - In creating deck when you check if a deck with that name exists make sure your exception specifies that the deck name already exists since it’s not necessarily that combination of cards
 - There are redundant checks for invalid cards after getting deck id in create_deck in decks.py(lines 82-96 seem like a copy paste of lines 53-68 and don’t seem to serve any additional purpose)
+- Instructions for multiple endpoints could be updated to be more clear. Like creating a deck there is nothing telling the user that a deck must have 5 cards and 5 cards only. As of right now if a user has 1 copy of a card they can make a deck with with 5 copies of it. I don't know if that is desired behavior, but deck building guidelines would help with the confusion.
+
 
 
 
@@ -210,9 +220,6 @@ but id is never used. You can either use id for something later, or you don't ne
 
 It would be nice if there was a check for if they already have the max amount of decks before creating a new deck instead of letting the creation of the deck go through and raising an error when trying to view the decks
 
-
-
-
 I would double check the code for check_pack_exists because when I tried opening a pack that was non existent by not capitalizing the pack name it resulted in a 500 internal server error instead of raising an exception (nothing stands out from this code so I’m not sure why the exception isn’t being raised) (The code works properly for purchasing a pack, so maybe you might just need to have that piece of code in the function for check_pack_exists)
 
 
@@ -225,7 +232,7 @@ It would be cool to add a get display endpoint where you can pass in a username 
 
 
 
-For get catalog, when different packs are added, I don’t see the need to limit the amount of packs you’re showing that are available since it just would return them in some arbitrary order and there is no way to check if a user would be purchasing a pack that was actually on the catalog (If you wanted to limit the amount of packs shown, I’d recommend adding an active attribute to each pack which would determine if you offer it on the catalog and also if a user can purchase it)
+
 
 For deck_cards you wouldn’t need an id column -> the primary key would just be the (deck_id, card_name) tuple
 
@@ -246,10 +253,6 @@ Make sure to be consistent with the naming of the endpoints (ex. If you’re goi
 Consider renaming the open packs endpoint from "/users/{user_id}/open_packs/{pack_name}/{pack_quantity}" to /open_packs/{user_id}/{pack_name}/{pack_quantity} (This way it’s clear that this packs.py endpoint is for when a pack is opened and the necessary information are the user id, pack name, and quantity)
 
 Also rename the purchase packs endpoint to be /purchase_packs/{user_id}/{pack_name}/{pack_quantity} for same reasoning as above and to maintain consistency
-
-If you only plan on allowing users to purchase packs and nothing else, you could simplify the endpoint url to just /catalog or if you will implement other kinds of purchases then make sure to rename the url so it is /catalog/packs instead of /packs/catalogs (By having packs before catalog it implies that it is a pack specific endpoint but it’s a catalog related endpoint)
-Simplify the endpoint url in users.py from users/users/register to just users/register
-
 
 
 I would add rarities to the cards or show probabilities of pulling certain cards to add an element of excitement when getting rarer cards.
@@ -317,7 +320,6 @@ Can't rename decks
 Can't see cards in a deck
 The catalog endpoint should give us a way to see what cards are available in the pack and preferably the rarity of pulling a copy of the cards.
 
-Instructions for multiple endpoints could be updated to be more clear. Like creating a deck there is nothing telling the user that a deck must have 5 cards and 5 cards only. As of right now if a user has 1 copy of a card they can make a deck with with 5 copies of it. I don't know if that is desired behavior, but deck building guidelines would help with the confusion.
 
 User profile functionality is very limited:
 
@@ -347,11 +349,8 @@ I would recommend making the input case insensitive. I was confused after I open
 The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation.
 For instance battle.py, collection.py, display.py could use a small documentation touch up.
 
-There is duplicated code in cards.py and packs.py. This can be rewritten as a function that both can call individually.
 
-
-
-# In packs.py
+In packs.py
 
 
 User has 10 packs
