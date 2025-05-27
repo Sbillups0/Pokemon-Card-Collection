@@ -85,12 +85,13 @@ RETURNING id
 - In the case where a user’s display is both full and they’re adding a card that is already in display it would be more useful to know that that card is already in the display than that their display is full so consider switching the ordering of the http exceptions
 
      This is already taken care in the below code segment
-       if len(in_collection) == 0:
+  
+    ```if len(in_collection) == 0:
         raise HTTPException(status_code=404, detail="Card not in user's collection")
     elif len(current_display) == 4:
         raise HTTPException(status_code=403, detail="User's display is full")
     elif card_name in current_display:
-        raise HTTPException(status_code=403, detail="Card is already in user's display")
+        raise HTTPException(status_code=403, detail="Card is already in user's display")```
 
 ## packs.py
 
