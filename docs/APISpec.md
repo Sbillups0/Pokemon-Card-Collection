@@ -33,6 +33,9 @@ API Specification
    - POST /users/user_id/battle/deck_name ---> "Lightwork, gained 50 gold"
 11. Get Inventory(user_id)
    - Returns list of packs in the user's inventory, along with their quantities.
-   - GET /users/user_id/inventory ---> [Grass(5), Water(2), Fire(7)] 
+   - GET /users/user_id/inventory ---> [Grass(5), Water(2), Fire(7)]
+12. Get Recommended (user_id) (MORE COMPLEX ENDPOINT)
+   - Checks the user's current collection of cards and compares it to each pack in the catalog currently. Then, it recommends a pack based on the number of missing cards. (Whichever pack they have the least cards from)
+   - GET /packs/user_id/recommended
 
 
