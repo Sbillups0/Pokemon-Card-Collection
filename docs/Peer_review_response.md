@@ -20,7 +20,7 @@
 ### Review comments not accepted
 - For get catalog, when different packs are added, I don’t see the need to limit the amount of packs you’re showing that are available since it just would return them in some arbitrary order and there is no way to check if a user would be purchasing a pack that was actually on the catalog (If you wanted to limit the amount of packs shown, I’d recommend adding an active attribute to each pack which would determine if you offer it on the catalog and also if a user can purchase it)
 
-       Currently 6 packs are shown are the top 6 packs with maximum price. Even though there are other packs available, we are only showing the Top 6 packs based on price. Users have visibility to only those 6 packs. If we don't limit it will be a huge number of packs.
+Currently 6 packs are shown are the top 6 packs with maximum price. Even though there are other packs available, we are only showing the Top 6 packs based on price. Users have visibility to only those 6 packs. If we don't limit it will be a huge number of packs.
        
 
 ## collection.py
