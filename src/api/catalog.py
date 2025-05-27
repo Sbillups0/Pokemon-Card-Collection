@@ -47,7 +47,7 @@ def create_catalog() -> List[Pack]:
     return catalog_list
 
 
-@router.get("/packs/catalog/", tags=["catalog"], response_model=List[Pack])
+@router.get("/catalog/packs/", tags=["catalog"], response_model=List[Pack])
 def get_catalog() -> List[Pack]:
     """
     Retrieves the catalog of five packs that are available to purchase.
