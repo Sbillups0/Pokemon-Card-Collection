@@ -20,6 +20,11 @@ class CollectionInfo(BaseModel):
     Card: Card
     Quantity: int
 
+class CollectionResponse(BaseModel):
+    Cards: List[CollectionInfo]
+    TotalValue: float
+
+
 def check_user_exists(user_id: int):
      with db.engine.begin() as connection:
         existing_user = connection.execute(sqlalchemy.text("""
@@ -30,9 +35,11 @@ def check_user_exists(user_id: int):
         else:
              return True
     
-@router.get("/{user_id}/get/{type}", tags=["collection"], response_model = List[CollectionInfo])
+@router.get("/{user_id}/{type}", tags=["collection"], response_model = CollectionResponse)
 def get_collection_by_type(user_id: int, type: str):
     check_user_exists(user_id)
+    type = type.strip().capitalize()
+    total_value = 0.0
    
     collection = []
     with db.engine.begin() as connection: 
@@ -55,23 +62,26 @@ def get_collection_by_type(user_id: int, type: str):
         ).all()
         for name, ctype, price, quantity in cards:
             collection.append(CollectionInfo(Card = Card(name=name, type=ctype, price=price), Quantity=quantity))
-    return collection
+            total_value += price * quantity
+    return CollectionResponse(Cards=collection, TotalValue=total_value)
 
-@router.get("/{user_id}/get", tags=["collection"], response_model = List[CollectionInfo])
+@router.get("/{user_id}", tags=["collection"], response_model = CollectionResponse)
 def get_full_collection(user_id: int):
-        check_user_exists(user_id)
-        collection = []
-        with db.engine.begin() as connection: 
-            cards = connection.execute(sqlalchemy.text("""
-                SELECT c.name, c.type, c.price, col.quantity FROM collection AS col
-                LEFT JOIN cards AS c ON col.card_id = c.id
-                WHERE col.user_id = :user_id
-                ORDER BY c.type
-                                                    """),
-                {"user_id": user_id}
-            ).all()
-            for name, ctype, price, quantity in cards:
-                collection.append(CollectionInfo(Card = Card(name=name, type=ctype, price=price), Quantity=quantity))
-        return collection
+    check_user_exists(user_id)
+    collection = []
+    total_value = 0.0
+    with db.engine.begin() as connection: 
+        cards = connection.execute(sqlalchemy.text("""
+            SELECT c.name, c.type, c.price, col.quantity FROM collection AS col
+            LEFT JOIN cards AS c ON col.card_id = c.id
+            WHERE col.user_id = :user_id
+            ORDER BY c.type
+                                                """),
+            {"user_id": user_id}
+        ).all()
+        for name, ctype, price, quantity in cards:
+            collection.append(CollectionInfo(Card = Card(name=name, type=ctype, price=price), Quantity=quantity))
+            total_value += price * quantity
+    return CollectionResponse(Cards=collection, TotalValue=total_value)
 
 
