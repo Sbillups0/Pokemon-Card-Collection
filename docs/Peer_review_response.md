@@ -22,6 +22,16 @@
 
 - In collection.py, in two different routes, you use the function name get_collection, which may cause an error or lead to confusion when distinguishing between functions. I recommend changing one of these function names to be more descriptive for their respective routes.
 - I also think that both routes using get_collection should be @router.get instead of @router.post because they are read-only.
+- It would be good to have a check for if it is a valid type or not in get_collection in collection.py
+- In get collection it would be useful to have some kind of formatting function for the type that is passed in. When I try to look for the ‘normal’ cards I own I get an empty string but when I look for cards of type “Normal” I can see the cards. It would be useful to include a message on the formatting of the type and then also run a formatter function on what is passed in as well
+- The functions in collection.py should be marked as get endpoints instead of post endpoints since nothing is being added to the database (both of them are currently shown as post endpoints)
+- Additionally for the endpoints in collection.py you don’t need /get in the endpoint url, having /{user_id} and /{user_id}/{type} would be fine
+- In get collection by type it would be good to check if it is a valid type of pokemon before searching the database (You could create a new table for the different types and query that to get a type_id that you then use for the rest of the queries) (Also raising an exception if it is not a recognized type would be good instead of just returning an empty list so the user knows why they are receiving and empty list)
+- Get Collection: It would be nice to have the collection endpoint filter by something, this could be type, name, or price.
+- No way to see total collection value
+
+
+
 
 ### collection.py has been updated for the above review comments 
 
@@ -43,7 +53,7 @@ RETURNING id
 ```
 but id is never used. You can either use id for something later, or you don't need to return it.
 
-### collection.py has been updated for the above review comments 
+### decks.py has been updated for the above review comments 
 
 ## cards.py
 
@@ -66,6 +76,7 @@ but id is never used. You can either use id for something later, or you don't ne
   - In cards.py, the sell_card_by_name endpoint allows selling cards that are currently in decks. This could lead to invalid decks where users have decks containing cards they no longer own. The endpoint should either prevent selling cards that are in decks or remove the cards from decks when sold.
   - In sell by card name, it might be helpful to tell the user how many of that card they own in the exception itself since they can’t see the printed outputs
   - In both sell card by name and get card by name when raising the error for card not found, it would be good to also include a sentence about how the name should be formatted (capitalized) because passing in the card name with all lowercase letters means that no card_id is returned
+
   
 
 ### cards.py has been updated for the above review comments 
@@ -111,6 +122,7 @@ but id is never used. You can either use id for something later, or you don't ne
 - Consider moving everything under opening packs for number of packs opened to be in the same transaction as everything else so that if something fails in this part it’ll also rollback the updates to quantity inventory
 - If you save the pack id, in your query that returns packs you can instead just use the pack id instead of the name (the query from lines 92-99 in packs.py)
 - In purchase packs you should check if the user exists earlier in the transaction (before getting pack data) so if the user doesn’t exist you’re not doing other queries from the database
+- This isn't too important but in packs.py the parameter dictionaries are wrapped in lists which is unecessary since we can only open one type of pack at a time.
 -
  ```
 def check_user_exists(user_id: int):
@@ -177,9 +189,9 @@ Two requests come in at about the same time.
 
 
 
-It would be good to have a check for if it is a valid type or not in get_collection in collection.py
 
-In get collection it would be useful to have some kind of formatting function for the type that is passed in. When I try to look for the ‘normal’ cards I own I get an empty string but when I look for cards of type “Normal” I can see the cards. It would be useful to include a message on the formatting of the type and then also run a formatter function on what is passed in as well
+
+
 
 In creating deck when you check if a deck with that name exists make sure your exception specifies that the deck name already exists since it’s not necessarily that combination of cards
 
@@ -201,11 +213,8 @@ Didn’t seem like there was a schema for the display table in schema.sql and th
 
 It would be cool to add a get display endpoint where you can pass in a username and see the cards they have in display and also an edit display endpoint
 
-The functions in collection.py should be marked as get endpoints instead of post endpoints since nothing is being added to the database (both of them are currently shown as post endpoints)
 
-Additionally for the endpoints in collection.py you don’t need /get in the endpoint url, having /{user_id} and /{user_id}/{type} would be fine
 
-In get collection by type it would be good to check if it is a valid type of pokemon before searching the database (You could create a new table for the different types and query that to get a type_id that you then use for the rest of the queries) (Also raising an exception if it is not a recognized type would be good instead of just returning an empty list so the user knows why they are receiving and empty list)
 
 For get catalog, when different packs are added, I don’t see the need to limit the amount of packs you’re showing that are available since it just would return them in some arbitrary order and there is no way to check if a user would be purchasing a pack that was actually on the catalog (If you wanted to limit the amount of packs shown, I’d recommend adding an active attribute to each pack which would determine if you offer it on the catalog and also if a user can purchase it)
 
@@ -240,7 +249,7 @@ After opening a pack, it would be helpful to know how many coins you have remain
 
 Open Packs: Once I open a pack, it was difficult to know what cards I pulled later unless I go to my collection. A log of recent pack openings could be helpful.
 
-Get Collection: It would be nice to have the collection endpoint filter by something, this could be type, name, or price.
+
 
 It would be cool to have a total estimated value of my collection as a user in order to see if I should sell, and I can build on my collection and try to get more valuable cards.
 
@@ -303,7 +312,7 @@ Instructions for multiple endpoints could be updated to be more clear. Like crea
 
 User profile functionality is very limited:
 
-No way to see total collection value
+
 No statistics on cards owned
 No history of transactions
 No way to track progress (Percent of cards from pack owned)
@@ -343,11 +352,11 @@ Request A updates quantity -> 10 - 7 = 3 packs remaining
 Request B updates quantity -> 3 - 7 = -4 packs
 Not all database transactions are atomic. For example, sell_card_by_name in cards.py checks collection, updates or deletes from collection, and then updates the user's coins all in different transactions when they should be within the same transaction. That way if one fails they all get rolled back instead of having an inconsistent change of state.
 
-This isn't too important but in packs.py the parameter dictionaries are wrapped in lists which is unecessary since we can only open one type of pack at a time.
+
 
 In decks.py, the get_user_decks endpoint incorrectly returns a 404 error with message "User has too many decks (max 3)" when trying to view decks if a user has more than 3 decks. As a user I should be able to see all my decks, and not get an error unless I have a very large number of decks.
 
-In cards.py, the sell_card_by_name endpoint allows selling cards that are currently in decks. This could lead to invalid decks where users have decks containing cards they no longer own. The endpoint should either prevent selling cards that are in decks or remove the cards from decks when sold.
+
 
 
 
