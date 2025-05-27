@@ -74,6 +74,7 @@ def check_pack_exists(pack_name: str):
 def recommended_pack(user_id: int):
     #Looks at a user's current collection, and the total distrubition of cards in each pack, assigning a value to each pack based
     #on how many cards the user owns from it, returning whichever pack has the highest value.
+    check_user_exists(user_id)
     with db.engine.begin() as connection:
         pack_list = connection.execute(sqlalchemy.text("SELECT name FROM packs")).scalars().all()
     
