@@ -46,8 +46,11 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
         ).scalar()
 
         if existing_deck:
-            raise HTTPException(status_code=400, detail="Deck already exists")
-        
+            raise HTTPException(
+                status_code=400,
+                detail=f"A deck with the name '{deck_name}' already exists for this user"
+            )
+
         # Check if cards exist
         placeholders = ", ".join([f":card_{i}" for i in range(len(cards))])
         params = {f"card_{i}": card for i, card in enumerate(cards)}
@@ -77,22 +80,7 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
         ).first()
 
         deck_id = deck_id_row.id
-
-        placeholders = ", ".join([f":card_{i}" for i in range(len(cards))])
-        params = {f"card_{i}": card for i, card in enumerate(cards)}
-
-        query = f"""
-            SELECT name FROM cards
-            WHERE name IN ({placeholders})
-        """
-        existing_card_names = connection.execute(sqlalchemy.text(query), params).scalars().all()
-
-        invalid_cards = [card for card in cards if card not in existing_card_names]
-        if invalid_cards:
-            raise HTTPException(
-                status_code=400,
-                detail=f"The following cards do not exist: {', '.join(invalid_cards)}"
-        )
+        
 
         # Add cards to the deck
         for card in cards:
