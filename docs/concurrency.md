@@ -9,6 +9,7 @@
 Phantom Read
 
 #### Sequence Diagram:
+![sequence diagram 1](./concurrency-sequence-diagram-1.jpg)
 
 #### Proposed solution:
 This is an unlikely issue, so an optimistic concurrency control approach is better here. Record the expected resulting quantity after opening the specified number of packs beforehand, and check if the result of the update matches the expectation. If not, roll back the update and skip adding any cards to the user's collection.
@@ -24,6 +25,7 @@ This is an unlikely issue, so an optimistic concurrency control approach is bett
 Phantom Read
 
 #### Sequence Diagram:
+![sequence diagram 2](./concurrency-sequence-diagram-2.jpg)
 
 #### Proposed solution:
 Again, this is an unlikely issue, so an optimistic concurrency control approach is better. Record the expected result for the card's quantity before updating the collections table. If the actual result is unexpected, roll back the update, and do not continue to updating the user's coins.
@@ -38,6 +40,7 @@ Again, this is an unlikely issue, so an optimistic concurrency control approach 
 Write Skew
 
 #### Sequence Diagram:
+![sequence diagram 3](./concurrency-sequence-diagram-3.jpg)
 
 #### Proposed solution:
 Selling cards can cause issues in different places, so in this case a pessimistic concurrency control solution is safer. When calling create_deck, acquire a shared lock with "FOR SHARE NOWAIT" for the rows in Collection containing the specified cards, and release the lock when the deck creation is done. Sell_card should fail instantly rather than waiting if a card is being added to a deck. 
