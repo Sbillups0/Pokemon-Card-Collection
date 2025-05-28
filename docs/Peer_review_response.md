@@ -57,12 +57,11 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
             if not result:
                 raise HTTPException(status_code=404, detail="User not found")
   ```
-  - Also move up where you check if the user exists or not in sell by card name before checking their quantity; The not enough cards exception might be caused by the user not existing/bad input
-  - In cards.py, the sell_card_by_name endpoint allows selling cards that are currently in decks. This could lead to invalid decks where users have decks containing cards they no longer own. The endpoint should either prevent selling cards that are in decks or remove the cards from decks when sold.
-  - In sell by card name, it might be helpful to tell the user how many of that card they own in the exception itself since they can’t see the printed outputs
-  - In both sell card by name and get card by name when raising the error for card not found, it would be good to also include a sentence about how the name should be formatted (capitalized) because passing in the card name with all lowercase letters means that no card_id is returned
-
   
+- Also move up where you check if the user exists or not in sell by card name before checking their quantity; The not enough cards exception might be caused by the user not existing/bad input
+- In cards.py, the sell_card_by_name endpoint allows selling cards that are currently in decks. This could lead to invalid decks where users have decks containing cards they no longer own. The endpoint should either prevent selling cards that are in decks or remove the cards from decks when sold.
+- In sell by card name, it might be helpful to tell the user how many of that card they own in the exception itself since they can’t see the printed outputs
+- In both sell card by name and get card by name when raising the error for card not found, it would be good to also include a sentence about how the name should be formatted (capitalized) because passing in the card name with all lowercase letters means that no card_id is returned
 
 ### cards.py has been updated for the above review comments 
 
@@ -128,6 +127,16 @@ for i in range(pack_quantity):
 ```
 There is a possible race condition in the open_packs function. I believe the problem can occur in the following scenario:
 Two requests come in at about the same time.
+- I would double check the code for check_pack_exists because when I tried opening a pack that was non existent by not capitalizing the pack name it resulted in a 500 internal server error instead of raising an exception (nothing stands out from this code so I’m not sure why the exception isn’t being raised) (The code works properly for purchasing a pack, so maybe you might just need to have that piece of code in the function for check_pack_exists)
+- Consider renaming the open packs endpoint from "/users/{user_id}/open_packs/{pack_name}/{pack_quantity}" to /open_packs/{user_id}/{pack_name}/{pack_quantity} (This way it’s clear that this packs.py endpoint is for when a pack is opened and the necessary information are the user id, pack name, and quantity)
+- Also rename the purchase packs endpoint to be /purchase_packs/{user_id}/{pack_name}/{pack_quantity} for same reasoning as above and to maintain consistency
+- After opening a pack, it would be helpful to know how many coins you have remaining instead of only listing the total amount of coins spent.
+- When buying packs -> "Not enough coins" could include current balance
+- The first I noticed after registering was that I didn't know how many coins I had. I tried to buy Crown Zenith pack and was told I didn't have enough coins. I would recommend either adding an endpoint that returns user information. It could be an endpoint on its own or be returned with other information. At the very least include it in the message saying that we can't afford a pack.
+
+
+
+
 
 ### packs.py has been updated for the above review comments
 
@@ -171,17 +180,11 @@ but id is never used. You can either use id for something later, or you don't ne
 - There are redundant checks for invalid cards after getting deck id in create_deck in decks.py(lines 82-96 seem like a copy paste of lines 53-68 and don’t seem to serve any additional purpose)
 - Instructions for multiple endpoints could be updated to be more clear. Like creating a deck there is nothing telling the user that a deck must have 5 cards and 5 cards only. As of right now if a user has 1 copy of a card they can make a deck with with 5 copies of it. I don't know if that is desired behavior, but deck building guidelines would help with the confusion.
 
-
-
-
 ### decks.py has been updated for the above review comments
 
 ### Review comments not accepted
 - In create deck I was confused at first on how to pass in the five card names, it might be helpful if instead of taking in a list of strings you took in exactly five strings which would also help later on since you check that there is exactly five cards passed
    if we change the list of strings to individual strings, we will lose the json format and also in the future, if we want to increase the number of cards from 5 to a different number, we need to revert back the change.
-
-
-
 
 ============================================================================================================================================================================================
 
@@ -220,7 +223,7 @@ but id is never used. You can either use id for something later, or you don't ne
 
 It would be nice if there was a check for if they already have the max amount of decks before creating a new deck instead of letting the creation of the deck go through and raising an error when trying to view the decks
 
-I would double check the code for check_pack_exists because when I tried opening a pack that was non existent by not capitalizing the pack name it resulted in a 500 internal server error instead of raising an exception (nothing stands out from this code so I’m not sure why the exception isn’t being raised) (The code works properly for purchasing a pack, so maybe you might just need to have that piece of code in the function for check_pack_exists)
+
 
 
 Not sure if this is intentional or not but I'm not able to view the battle and display endpoints on the render so I couldn’t test those endpoints
@@ -250,14 +253,11 @@ It would be helpful to add an endpoint that returns all the current types of car
 
 Make sure to be consistent with the naming of the endpoints (ex. If you’re going to add a /user before every /{user_id} (Decks and packs have the endpoint urls implemented as decks/users/{user_id}/… and packs/users/{user_id}/… while collection and inventory just only have user_id (ex. /inventory/{user_id}/audit))
 
-Consider renaming the open packs endpoint from "/users/{user_id}/open_packs/{pack_name}/{pack_quantity}" to /open_packs/{user_id}/{pack_name}/{pack_quantity} (This way it’s clear that this packs.py endpoint is for when a pack is opened and the necessary information are the user id, pack name, and quantity)
 
-Also rename the purchase packs endpoint to be /purchase_packs/{user_id}/{pack_name}/{pack_quantity} for same reasoning as above and to maintain consistency
 
 
 I would add rarities to the cards or show probabilities of pulling certain cards to add an element of excitement when getting rarer cards.
 
-After opening a pack, it would be helpful to know how many coins you have remaining instead of only listing the total amount of coins spent.
 
 Open Packs: Once I open a pack, it was difficult to know what cards I pulled later unless I go to my collection. A log of recent pack openings could be helpful.
 
@@ -289,7 +289,6 @@ Filter by price
 Filter by the quantity of the card I have
 The error messages across endpoints are inconsistent and not very detailed. For example:
 
-When buying packs -> "Not enough coins" could include current balance
 Invalid card names should specify what valid options are or specify things like the name to match the databases capitalization
 It would be nice to see other users' collections or total collection value. Maybe a leaderboard or general way to inspect the collections of others.
 
@@ -341,7 +340,7 @@ There is no input validation for the quantity of packs bought. If I pass in nega
 A similar problem happens for /users/{user_id}/open_packs/{pack_name}/{pack_quantity} where I can "open" a negative number of packs and they get added to my inventory. This circumnavigates the entire coin system so the exploit above isn't even required.
 
 There is no way to see how many coins I have
-The first I noticed after registering was that I didn't know how many coins I had. I tried to buy Crown Zenith pack and was told I didn't have enough coins. I would recommend either adding an endpoint that returns user information. It could be an endpoint on its own or be returned with other information. At the very least include it in the message saying that we can't afford a pack.
+
 
 /collection/{user_id}/get/{type}
 I would recommend making the input case insensitive. I was confused after I opened a pack got a Vulpix and tried to check my fire type pokemon and got an empty list when I passed in 'fire'. It should be as easy as adding a lower() call to check if the input and a database entry matches.
