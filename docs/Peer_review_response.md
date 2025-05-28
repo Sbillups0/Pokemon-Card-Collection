@@ -17,7 +17,7 @@
 
 ### catalog.py has been updated for the above review comments 
 
-### Review comments not accepted
+### Review comments not considered
 - For get catalog, when different packs are added, I don’t see the need to limit the amount of packs you’re showing that are available since it just would return them in some arbitrary order and there is no way to check if a user would be purchasing a pack that was actually on the catalog (If you wanted to limit the amount of packs shown, I’d recommend adding an active attribute to each pack which would determine if you offer it on the catalog and also if a user can purchase it)
 
 Currently 6 packs are shown are the top 6 packs with maximum price. Even though there are other packs available, we are only showing the Top 6 packs based on price. Users have visibility to only those 6 packs. If we don't limit it will be a huge number of packs.
@@ -65,7 +65,7 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 
 ### cards.py has been updated for the above review comments 
 
-### Review comments not accepted
+### Review comments not considered
 - Along similar lines in cards.py] rename the endpoint for sell_card_by_name from /users/{user_id}/sell/{card_name}to /sell/{user_id}/{card_name}
 
   This will not be RESTful. We are grouping all actions that are user centric under users. Changing this as per review comments will move away from this understanding
@@ -81,7 +81,7 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 
 ### display.py has been updated for the above review comments 
 
-### Review comments not accepted
+### Review comments not considered
 - In display.py, there's no validation to prevent displaying the same card multiple times. A user could add the same card to their display multiple times. This doesn't make sense from a user interface perspective. The endpoint should check if a card is already being displayed before adding it again.
 - In the case where a user’s display is both full and they’re adding a card that is already in display it would be more useful to know that that card is already in the display than that their display is full so consider switching the ordering of the http exceptions
 
@@ -182,9 +182,22 @@ but id is never used. You can either use id for something later, or you don't ne
 
 ### decks.py has been updated for the above review comments
 
-### Review comments not accepted
+### Review comments not considered
 - In create deck I was confused at first on how to pass in the five card names, it might be helpful if instead of taking in a list of strings you took in exactly five strings which would also help later on since you check that there is exactly five cards passed
    if we change the list of strings to individual strings, we will lose the json format and also in the future, if we want to increase the number of cards from 5 to a different number, we need to revert back the change.
+
+- In packs.py
+User has 10 packs
+Request A checks quantity -> sees 10 packs, which is enough for 7
+Request B checks quantity -> also sees 10 packs, which is enough for 7
+Request A updates quantity -> 10 - 7 = 3 packs remaining
+Request B updates quantity -> 3 - 7 = -4 packs
+Not all database transactions are atomic. For example, sell_card_by_name in cards.py checks collection, updates or deletes from collection, and then updates the user's coins all in different transactions when they should be within the same transaction. That way if one fails they all get rolled back instead of having an inconsistent change of state.
+
+
+       This is considered as part of concurrency exercise.
+
+  
 
 ============================================================================================================================================================================================
 
@@ -348,16 +361,6 @@ I would recommend making the input case insensitive. I was confused after I open
 The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation.
 For instance battle.py, collection.py, display.py could use a small documentation touch up.
 
-
-In packs.py
-
-
-User has 10 packs
-Request A checks quantity -> sees 10 packs, which is enough for 7
-Request B checks quantity -> also sees 10 packs, which is enough for 7
-Request A updates quantity -> 10 - 7 = 3 packs remaining
-Request B updates quantity -> 3 - 7 = -4 packs
-Not all database transactions are atomic. For example, sell_card_by_name in cards.py checks collection, updates or deletes from collection, and then updates the user's coins all in different transactions when they should be within the same transaction. That way if one fails they all get rolled back instead of having an inconsistent change of state.
 
 
 
