@@ -85,3 +85,15 @@ def get_full_collection(user_id: int):
     return CollectionResponse(Cards=collection, TotalValue=total_value)
 
 
+@router.get("/types", tags=["collection"])
+def get_card_types():
+    """Return all distinct card types."""
+    with db.engine.begin() as connection:
+        types = connection.execute(sqlalchemy.text("""
+            SELECT DISTINCT type FROM cards
+        """)).scalars().all()
+        
+    return {"types": types}
+
+
+
