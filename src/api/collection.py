@@ -95,5 +95,20 @@ def get_card_types():
         
     return {"types": types}
 
+@router.get("/{user_id}/value", tags=["collection"])
+def get_total_collection_value(user_id: int):
+    """Return the total estimated value of a user's card collection."""
+    check_user_exists(user_id)
+
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text("""
+            SELECT SUM(c.price * col.quantity) as total_value
+            FROM collection AS col
+            LEFT JOIN cards AS c ON col.card_id = c.id
+            WHERE col.user_id = :user_id
+        """), {"user_id": user_id}).scalar()
+
+    return {"user_id": user_id, "total_value": result or 0.0}
+
 
 
