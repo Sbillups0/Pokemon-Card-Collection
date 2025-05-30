@@ -18,7 +18,7 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
-@router.post("/users/{user_id}/battle/{deck_name}", tags=["battle"], response_model=str)
+@router.post("/{user_id}/battle/{deck_name}", tags=["battle"], response_model=str)
 def battle(user_id: int, deck_name: str) -> str:
     check_user_exists(user_id)
 
