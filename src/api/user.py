@@ -19,6 +19,12 @@ class User(BaseModel):
 class UserCreateResponse(BaseModel):
     user_id: int
 
+class UserProfile(BaseModel):
+    user_id: int
+    username: str
+    coins: int
+
+
 @router.post("/register/", response_model=UserCreateResponse)
 def register_user(username: str):
     """Register a user. If the user already exists, raise an exception.
@@ -46,5 +52,23 @@ def register_user(username: str):
         user_id = result.scalar()
 
     return UserCreateResponse(user_id=user_id)
+
+@router.get("/profile/{user_id}", response_model=UserProfile)
+def get_user_profile(user_id: int):
+    """Get profile details for a given user_id."""
+    with db.engine.begin() as conn:
+        user = conn.execute(
+            sqlalchemy.text("""
+                SELECT id, username, coins
+                FROM users
+                WHERE id = :user_id
+            """),
+            {"user_id": user_id}
+        ).fetchone()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return UserProfile(user_id=user.id, username=user.username, coins=user.coins)
 
 
