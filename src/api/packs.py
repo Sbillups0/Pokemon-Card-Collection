@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, path
 from pydantic import BaseModel, Field, field_validator
 from typing import List
 from fastapi import HTTPException
@@ -75,7 +75,7 @@ def check_pack_exists(pack_name: str):
 
         return pack_data[0]
 
-@router.get("/{user_id}/reccommended_pack", tags=["packs"], response_model=RecommendedPack)
+@router.get("/{user_id}/recommended_pack", tags=["packs"], response_model=RecommendedPack)
 def recommended_pack(user_id: int):
     #Looks at a user's current collection, and the total distrubition of cards in each pack, assigning a value to each pack based
     #on how many cards the user owns from it, returning whichever pack has the highest value.
