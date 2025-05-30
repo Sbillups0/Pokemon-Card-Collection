@@ -78,7 +78,7 @@ def get_card_by_name(card_name: str):
         }
 
 
-@router.post("/users/{user_id}/sell/{card_name}")
+@router.post("sell/{user_id}/{card_name}")
 def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
     with db.engine.begin() as conn:
         check_user_exists(user_id)
