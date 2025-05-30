@@ -17,7 +17,7 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
-@router.post("/users/{user_id}/{card_name}", tags=["display"], status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/{user_id}/{card_name}", tags=["display"], status_code=status.HTTP_204_NO_CONTENT)
 def add_to_display(user_id: int, card_name: str):
     check_user_exists(user_id)
     with db.engine.begin() as connection:
