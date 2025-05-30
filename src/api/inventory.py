@@ -32,7 +32,7 @@ class InventoryAudit(BaseModel):
     coins: int
     packs: List[PackWithQuantity]
 
-@router.get("/user/{user_id}/audit", tags=["inventory"], response_model=InventoryAudit)
+@router.get("/{user_id}/audit", tags=["inventory"], response_model=InventoryAudit)
 def get_inventory(user_id: int) -> InventoryAudit:
     """Returns all unopened packs and coins a user owns"""
     with db.engine.begin() as connection:
