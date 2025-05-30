@@ -1,14 +1,12 @@
 from dataclasses import dataclass
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from typing import List
 import sqlalchemy
 from src.api import auth
 from src import database as db
 from src.api.catalog import Card, Pack
-from fastapi import HTTPException
 from src.api.collection import check_user_exists
-
 
 router = APIRouter(
     prefix="/decks",
@@ -22,6 +20,9 @@ class Deck(BaseModel):
 
     @field_validator("deck_name")
     def validate_deck_name(cls, value):
+        """
+        Validates that the deck name is not empty.
+        """
         if not value:
             raise ValueError("Deck name cannot be empty")
         return value
@@ -29,21 +30,35 @@ class Deck(BaseModel):
 @router.post("/{user_id}/create_deck/{deck_name}")
 def create_deck(user_id: int, deck_name: str, cards: List[str]):
     """
-    Create a deck for a user.
-    
-    Rules:
-    - Exactly 5 cards must be provided.
-    - Cards must exist in the card database.
-    - User must own enough copies of each card to include them in the deck.
+    Create a new deck for a specified user.
+
+    Validation rules:
+    - Exactly 5 cards must be included.
+    - All cards must exist in the card database.
+    - The deck name must be unique per user.
+    - The user must exist.
+
+    Args:
+        user_id (int): ID of the user creating the deck.
+        deck_name (str): Name of the new deck.
+        cards (List[str]): List of exactly 5 card names to include.
+
+    Raises:
+        HTTPException 400: If deck size is not 5, deck name exists, or cards don't exist.
+        HTTPException 404: If user does not exist.
+
+    Returns:
+        dict: Success message on deck creation.
     """
     with db.engine.begin() as connection:
+        # Validate exact deck size
         if len(cards) != 5:
-            raise HTTPException(status_code=400, detail="A deck must contain exactly 5 cards")
+            raise HTTPException(status_code=400, detail="A deck must contain exactly 5 cards.")
 
-        # Check user exists
+        # Confirm user exists
         check_user_exists(user_id)
 
-        # Check if deck already exists
+        # Check if the deck name is already taken for this user
         existing_deck = connection.execute(
             sqlalchemy.text("""
                 SELECT COUNT(*) FROM decks
@@ -55,10 +70,10 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
         if existing_deck:
             raise HTTPException(
                 status_code=400,
-                detail=f"A deck with the name '{deck_name}' already exists for this user"
+                detail=f"A deck named '{deck_name}' already exists for this user."
             )
 
-        # Check if cards exist
+        # Verify all cards exist in the card database
         placeholders = ", ".join([f":card_{i}" for i in range(len(cards))])
         params = {f"card_{i}": card for i, card in enumerate(cards)}
 
@@ -73,10 +88,10 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
         if invalid_cards:
             raise HTTPException(
                 status_code=400,
-                detail=f"The following cards do not exist: {', '.join(invalid_cards)}"
+                detail=f"The following cards do not exist: {', '.join(invalid_cards)}."
             )
 
-        # Create the deck and get its ID
+        # Insert the new deck and retrieve its ID
         deck_id_row = connection.execute(
             sqlalchemy.text("""
                 INSERT INTO decks (user_id, deck_name)
@@ -87,9 +102,8 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
         ).first()
 
         deck_id = deck_id_row.id
-        
 
-        # Add cards to the deck
+        # Associate each card with the new deck
         for card in cards:
             connection.execute(
                 sqlalchemy.text("""
@@ -98,14 +112,27 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
                 """),
                 {"deck_id": deck_id, "card_name": card}
             )
-        return {"message": "Deck created successfully"}
+
+        return {"message": "Deck created successfully."}
 
 @router.get("/{user_id}/decks")
 def get_user_decks(user_id: int):
+    """
+    Retrieve all deck names created by a user.
+
+    Args:
+        user_id (int): The user's ID.
+
+    Raises:
+        HTTPException 404: If user does not exist, no decks found, or user has more than 3 decks.
+
+    Returns:
+        List[str]: List of deck names owned by the user.
+    """
     with db.engine.begin() as connection:
-        # Check user exists (optional but safe)
+        # Check user existence
         if not check_user_exists(user_id):
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found.")
 
         deck_names = connection.execute(
             sqlalchemy.text("""
@@ -116,9 +143,15 @@ def get_user_decks(user_id: int):
         ).scalars().all()
 
         if not deck_names:
-            raise HTTPException(status_code=404, detail="No decks found for this user")
+            raise HTTPException(
+                status_code=404,
+                detail=f"No decks found for user with ID {user_id}."
+            )
         
         if len(deck_names) > 3:
-            raise HTTPException(status_code=404, detail="User has too many decks (max 3)")
+            raise HTTPException(
+                status_code=400,
+                detail="User has too many decks (maximum allowed is 3)."
+            )
         
         return deck_names
