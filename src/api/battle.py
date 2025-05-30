@@ -1,14 +1,10 @@
 from dataclasses import dataclass
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from typing import List
-from fastapi import HTTPException
-
 import sqlalchemy
 from src.api import auth
 from src import database as db
-import random 
-import math
 import numpy as np
 from src.api.collection import check_user_exists
 
@@ -20,13 +16,27 @@ router = APIRouter(
 
 @router.post("/{user_id}/battle/{deck_name}", tags=["battle"], response_model=str)
 def battle(user_id: int, deck_name: str) -> str:
+    """
+    Simulate a battle using the specified user's deck.
+
+    Args:
+        user_id (int): The ID of the user initiating the battle.
+        deck_name (str): The name of the deck to battle with.
+
+    Returns:
+        str: The battle result, either 'Victory!' or 'Defeat...'.
+
+    Raises:
+        HTTPException 404 if the user or the deck does not exist.
+        HTTPException 400 if the deck contains no cards.
+    """
+    # Verify that the user exists
     check_user_exists(user_id)
 
     with db.engine.begin() as connection:
+        # Get deck ID by deck name
         result = connection.execute(
-            sqlalchemy.text(
-                "SELECT id FROM decks WHERE deck_name = :deck_name"
-            ),
+            sqlalchemy.text("SELECT id FROM decks WHERE deck_name = :deck_name"),
             {"deck_name": deck_name}
         ).fetchone()
     
@@ -35,6 +45,7 @@ def battle(user_id: int, deck_name: str) -> str:
     
         deck_id = result[0]
     
+        # Get cards in the deck along with their prices
         deck_contents = connection.execute(
             sqlalchemy.text(
                 """
@@ -49,6 +60,7 @@ def battle(user_id: int, deck_name: str) -> str:
     if not deck_contents:
         raise HTTPException(status_code=400, detail="Deck contains no cards.")
 
+    # Calculate deck card value statistics for battle logic
     MAX_CARD_PRICE = 100
     value_sum = 0
     highest_value = 0
@@ -62,10 +74,14 @@ def battle(user_id: int, deck_name: str) -> str:
 
     avg_value = value_sum / len(deck_contents)
 
+    # Calculate winning probability (scaled)
     win_prob = 0.01 * (30 + (avg_value * 0.4) + (highest_value * 0.2) + (lowest_value * 0.1))
+
+    # Simulate battle outcome using weighted random choice
     battle_result = np.random.choice(['Victory!', 'Defeat...'], p=[win_prob, 1 - win_prob])
 
     if battle_result == 'Victory!':
+        # Reward user coins for winning
         with db.engine.begin() as connection:
             connection.execute(
                 sqlalchemy.text(
@@ -79,4 +95,3 @@ def battle(user_id: int, deck_name: str) -> str:
             )
 
     return battle_result
-
