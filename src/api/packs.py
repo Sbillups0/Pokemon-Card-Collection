@@ -39,12 +39,15 @@ class PackOpenResult(BaseModel):
     opened_packs: List[PackOpened]
 
 def check_user_exists(user_id: int):
-     with db.engine.begin() as connection:
-        existing_user = connection.execute(sqlalchemy.text("""
-            SELECT id FROM users WHERE id = :user_id
-        """), {"user_id": user_id}).scalar_one_or_none()
-        if not existing_user:
-            raise HTTPException(status_code=404, detail="User does not exist")
+    with db.engine.begin() as connection:
+        user = connection.execute(
+            sqlalchemy.text("SELECT id FROM users WHERE id = :user_id"),
+            {"user_id": user_id}
+        ).scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail=f"No user found with ID {user_id}")
+
 
 def weighted_random_choice(item_list):
     # Get the maximum price to invert weights
@@ -62,18 +65,18 @@ def weighted_random_choice(item_list):
 
 def check_pack_exists(pack_name: str):
     with db.engine.begin() as connection:
-        pack_data = connection.execute(
-            sqlalchemy.text("""
-                SELECT id FROM packs
-                WHERE LOWER(name) = LOWER(:pack_name)
-            """),
+        pack = connection.execute(
+            sqlalchemy.text("SELECT id FROM packs WHERE LOWER(name) = LOWER(:pack_name)"),
             {"pack_name": pack_name}
         ).fetchone()
 
-        if not pack_data:
-            raise HTTPException(status_code=404, detail="Pack not found")
+    if not pack:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Pack '{pack_name}' not found. Please check the name and try again."
+        )
+    return pack[0]
 
-        return pack_data[0]
 
 @router.get("/{user_id}/recommended_pack", tags=["packs"], response_model=RecommendedPack)
 def recommended_pack(user_id: int):
@@ -111,11 +114,9 @@ def recommended_pack(user_id: int):
 def open_packs(user_id: int, 
                pack_name: str, 
                pack_quantity: int = Path(..., gt=0, description="Number of packs to purchase (must be > 0)")):
-    if pack_quantity <= 0:
-        raise HTTPException(
-            status_code=400,
-            detail="Pack quantity must be a positive integer"
-        )
+    if not isinstance(pack_quantity, int) or pack_quantity <= 0:
+        raise HTTPException(status_code=422, detail="Pack quantity must be a positive integer.")
+        
     check_user_exists(user_id)
     
 
@@ -131,9 +132,13 @@ def open_packs(user_id: int,
         ).scalar_one_or_none()
         
        
-
+        
         if owned_packs is None or owned_packs < pack_quantity:
-            raise HTTPException(status_code=404, detail="Not enough packs in inventory")
+            raise HTTPException(
+                status_code=400,
+                detail=f"User only has {owned_packs or 0} packs of '{pack_name}' but requested {pack_quantity}"
+            )
+
 
         # 2. Update inventory to reflect packs opened
         connection.execute(
@@ -193,15 +198,18 @@ def open_packs(user_id: int,
 def purchase_packs(user_id: int,
                    pack_name: str, 
                    pack_quantity: int = Path(..., gt=0, description="Number of packs to purchase (must be > 0)")):
-    """The user given by the user_id gives the name of a specific pack and the number they'd
-        like to purchase. The price is subtracted from their gold and the packs are added to 
-        their inventory."""
+    """
+    Purchase a specified number of card packs for a user.
 
-    if pack_quantity <= 0:
-        raise HTTPException(
-            status_code=400,
-            detail="Pack quantity must be a positive integer"
-        )
+    - **user_id**: ID of the user making the purchase.
+    - **pack_name**: Name of the pack to be purchased.
+    - **pack_quantity**: Number of packs to purchase (must be > 0).
+    
+    Returns the total cost and the name of the pack.
+    """
+
+    if not isinstance(pack_quantity, int) or pack_quantity <= 0:
+        raise HTTPException(status_code=422, detail="Pack quantity must be a positive integer.")
      # 1. Check user existence early
     check_user_exists(user_id)
      # 2. Check pack existence and get pack_id
