@@ -5,8 +5,14 @@
 ### Review Comment
 - `.one()` can raise an exception if no result is found before checking for deck existence.
 - **Suggestion**: Use `.fetchone()` instead and check if the result is `None` before accessing the value.
+- Were the battle endpoints supposed to be implemented? I saw that you had a battle.py, but I was not able to use it in the testing. I think that using the battle endpoints would help improve the experience.
 
 ### battle.py has been update for the above review comment
+
+### Review comments not considered
+- Not sure if this is intentional or not but I'm not able to view the battle and display endpoints on the render so I couldn’t test those endpoints
+         The endpoint is available and it is visible in render API Docs too.
+
 
 ## catalog.py
 
@@ -36,8 +42,18 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 - In get collection by type it would be good to check if it is a valid type of pokemon before searching the database (You could create a new table for the different types and query that to get a type_id that you then use for the rest of the queries) (Also raising an exception if it is not a recognized type would be good instead of just returning an empty list so the user knows why they are receiving and empty list)
 - Get Collection: It would be nice to have the collection endpoint filter by something, this could be type, name, or price.
 - No way to see total collection value
+- /collection/{user_id}/get/{type}:I would recommend making the input case insensitive. I was confused after I opened a pack got a Vulpix and tried to check my fire type pokemon and got an empty list when I passed in 'fire'. It should be as easy as adding a lower() call to check if the input and a database entry matches.
+
 
 ### collection.py has been updated for the above review comments 
+
+### Review comments not considered
+- The collection endpoint could use more filtering options. Currently, we can only filter by type, but it would be useful to:
+       Filter by what pack they are pulled from
+       Filter by card name
+       Filter by price
+       Filter by the quantity of the card I have
+         These are good asks. We are currently allowing the filter by type. Some of these filters are complex to implement.
 
 
 ## cards.py
@@ -73,6 +89,9 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 - Not all database transactions are atomic. For example, sell_card_by_name in cards.py checks collection, updates or deletes from collection, and then updates the user's coins all in different transactions when they should be within the same transaction. That way if one fails they all get rolled back instead of having an inconsistent change of state.
 
   All transaction are performed using db.engine.begin(). This ensures that whenever a database transaction is started it happens in the same transaction. The entire sell_card_by_name is one in one single transaction.
+
+- Selling one card at a time was time-consuming, especially if I opened multiple packs. I think that having an easy function to sell duplicate cards or having some kind of bulk selling would be useful.
+         This is a good ask and it is not addressed as it is a complex sequence
 
 ## display.py
 
@@ -133,18 +152,32 @@ Two requests come in at about the same time.
 - After opening a pack, it would be helpful to know how many coins you have remaining instead of only listing the total amount of coins spent.
 - When buying packs -> "Not enough coins" could include current balance
 - The first I noticed after registering was that I didn't know how many coins I had. I tried to buy Crown Zenith pack and was told I didn't have enough coins. I would recommend either adding an endpoint that returns user information. It could be an endpoint on its own or be returned with other information. At the very least include it in the message saying that we can't afford a pack.
-
-
-
+- packs/users/{user_id}/purchase_packs/{pack_name}/{pack_quantity}
+There is no input validation for the quantity of packs bought. If I pass in negative number of packs it removes that many of the pack from my account, and credits me the coin price. This can work fine when used like returning an item (Like if I have 2 surging sparks packs and purchase -2 of them they get removed from my inventory and I get 2 * pack price back. Everything is the same state as before the initial purchase of the packs). However, it doesn't check how many of that pack I have, so I can input any size negative number and get essentially infinite coins. So I can purchase -10000 Crown Zenith and get 2000000 coins credited to my account. It seems like when I do this my pack count for that pack type goes negative as well. I can still exploit this by going into "pack debt" for one pack type and then opening unlimited packs of the other types.
+- Make sure to be consistent with the naming of the endpoints (ex. If you’re going to add a /user before every /{user_id} (Decks and packs have the endpoint urls implemented as decks/users/{user_id}/… and packs/users/{user_id}/… while collection and inventory just only have user_id (ex. /inventory/{user_id}/audit))
 
 
 ### packs.py has been updated for the above review comments
+
+### Review comments not considered
+- Open Packs: Once I open a pack, it was difficult to know what cards I pulled later unless I go to my collection. A log of recent pack openings could be helpful.
+- It would be cool to see potential cards that can be pulled from each pack. It could display what cards are there and if there are cards that are more rare or less likely to be pulled.
+- If you want to add additional endpoints, I think that a profile that returns unopened packs, total cards, the amount of coins, and your card deck would be useful as well.
+
+         These are good asks. We are currently showing the pack openings as the reponse of Open Pack. The result of open pack is also stored in collections. Additional asks - potential cards and profile are complex sequence. 
+
 
 ## user.py
 
 ### Review comments
 - In register user on line 31 the column for username is capitalizes as ‘Username’ which might be causing problems when registering a user that already exists. When trying to register with a username that exists a 500 internal server error occurs instead of raising the http exception that the username exists
 - Simplify the endpoint url in users.py from users/users/register to just users/register
+- Some use /users/{user_id}/action
+Others use /action/{user_id}
+Some include unnecessary words like "get"
+Inconsistent use of plurals
+- There is no way to see how many coins I have
+
 
 ### user.py has been updated for the above review comments
 
@@ -194,7 +227,6 @@ Request A updates quantity -> 10 - 7 = 3 packs remaining
 Request B updates quantity -> 3 - 7 = -4 packs
 Not all database transactions are atomic. For example, sell_card_by_name in cards.py checks collection, updates or deletes from collection, and then updates the user's coins all in different transactions when they should be within the same transaction. That way if one fails they all get rolled back instead of having an inconsistent change of state.
 
-
        This is considered as part of concurrency exercise.
 
   
@@ -231,40 +263,41 @@ Not all database transactions are atomic. For example, sell_card_by_name in card
 
 
 
-
-
+Deck:
 
 It would be nice if there was a check for if they already have the max amount of decks before creating a new deck instead of letting the creation of the deck go through and raising an error when trying to view the decks
-
-
-
-
-Not sure if this is intentional or not but I'm not able to view the battle and display endpoints on the render so I couldn’t test those endpoints
-
-Didn’t seem like there was a schema for the display table in schema.sql and the alembic revisions so make sure to add that somewhere (But from the code for the endpoint I think you would just need to have a user_id and card_id column and the primary key would be the tuple of both of those values)
-
-It would be cool to add a get display endpoint where you can pass in a username and see the cards they have in display and also an edit display endpoint
-
-
-
-
-
 
 For deck_cards you wouldn’t need an id column -> the primary key would just be the (deck_id, card_name) tuple
 
 It would be helpful to check for combinations of cards in a deck for create_deck, you could create a new table that stores the different card combinations a user has in a deck (Where you insert 5 card id/names and it returns a deck id for the card combination (instead of just having a deck id returned on the deck name and user id combination))(You could always have the card insertion order be in ascending card id order/alphabetical order of card names so that if they’re trying to insert the same combination of cards you catch that)
 
+I think that each card should have some type of quality that contributes to its fighting skills. You can add how much damage they do or what kind of attacking role they have. This would help distinguish between cards and help build a more curated deck. It would also make sense to have the cards that cost more be better at battling.
+
+I didn't see any way to delete decks or rename them if I wanted to. I think that it would be helpful to have some management of the decks you create.
+
+Can't modify existing decks
+No way to delete decks
+Can't rename decks
+Can't see cards in a deck
+The catalog endpoint should give us a way to see what cards are available in the pack and preferably the rarity of pulling a copy of the cards.
+
+In decks.py, the get_user_decks endpoint incorrectly returns a 404 error with message "User has too many decks (max 3)" when trying to view decks if a user has more than 3 decks. As a user I should be able to see all my decks, and not get an error unless I have a very large number of decks.
 
 
-In create deck, in addition to the check for nonexistent cards you should also be checking for if the user owns those cards, right now users can create decks with cards as long as they exist even if they don't own any cards themselves
 
-When I look for what decks I have, it just returns the name of the deck - it would be nice to have an endpoint that allows me to see the cards are in which deck
 
-Since there is a limit to how many decks a user can have, it would be nice to also have endpoints for users to modify or delete their current decks
+Didn’t seem like there was a schema for the display table in schema.sql and the alembic revisions so make sure to add that somewhere (But from the code for the endpoint I think you would just need to have a user_id and card_id column and the primary key would be the tuple of both of those values)
+
+
+
+
+
+
+
+
 
 It would be helpful to add an endpoint that returns all the current types of cards that exist so users know which card types they can search for
 
-Make sure to be consistent with the naming of the endpoints (ex. If you’re going to add a /user before every /{user_id} (Decks and packs have the endpoint urls implemented as decks/users/{user_id}/… and packs/users/{user_id}/… while collection and inventory just only have user_id (ex. /inventory/{user_id}/audit))
 
 
 
@@ -272,7 +305,6 @@ Make sure to be consistent with the naming of the endpoints (ex. If you’re goi
 I would add rarities to the cards or show probabilities of pulling certain cards to add an element of excitement when getting rarer cards.
 
 
-Open Packs: Once I open a pack, it was difficult to know what cards I pulled later unless I go to my collection. A log of recent pack openings could be helpful.
 
 
 
@@ -280,26 +312,16 @@ It would be cool to have a total estimated value of my collection as a user in o
 
 Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 
-Were the battle endpoints supposed to be implemented? I saw that you had a battle.py, but I was not able to use it in the testing. I think that using the battle endpoints would help improve the experience.
-
-I think that each card should have some type of quality that contributes to its fighting skills. You can add how much damage they do or what kind of attacking role they have. This would help distinguish between cards and help build a more curated deck. It would also make sense to have the cards that cost more be better at battling.
-
-Selling one card at a time was time-consuming, especially if I opened multiple packs. I think that having an easy function to sell duplicate cards or having some kind of bulk selling would be useful.
-
-I didn't see any way to delete decks or rename them if I wanted to. I think that it would be helpful to have some management of the decks you create.
-
-It would be cool to see potential cards that can be pulled from each pack. It could display what cards are there and if there are cards that are more rare or less likely to be pulled.
-
-If you want to add additional endpoints, I think that a profile that returns unopened packs, total cards, the amount of coins, and your card deck would be useful as well.
 
 
 
-The collection endpoint could use more filtering options. Currently, we can only filter by type, but it would be useful to:
 
-Filter by what pack they are pulled from
-Filter by card name
-Filter by price
-Filter by the quantity of the card I have
+
+
+
+
+
+
 The error messages across endpoints are inconsistent and not very detailed. For example:
 
 Invalid card names should specify what valid options are or specify things like the name to match the databases capitalization
@@ -326,11 +348,6 @@ No history of past pack openings
 No celebration or special indication when getting rare cards
 Deck management is very limited:
 
-Can't modify existing decks
-No way to delete decks
-Can't rename decks
-Can't see cards in a deck
-The catalog endpoint should give us a way to see what cards are available in the pack and preferably the rarity of pulling a copy of the cards.
 
 
 User profile functionality is very limited:
@@ -341,22 +358,14 @@ No history of transactions
 No way to track progress (Percent of cards from pack owned)
 While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
 
-Some use /users/{user_id}/action
-Others use /action/{user_id}
-Some include unnecessary words like "get"
-Inconsistent use of plurals
 
 
-packs/users/{user_id}/purchase_packs/{pack_name}/{pack_quantity}
-There is no input validation for the quantity of packs bought. If I pass in negative number of packs it removes that many of the pack from my account, and credits me the coin price. This can work fine when used like returning an item (Like if I have 2 surging sparks packs and purchase -2 of them they get removed from my inventory and I get 2 * pack price back. Everything is the same state as before the initial purchase of the packs). However, it doesn't check how many of that pack I have, so I can input any size negative number and get essentially infinite coins. So I can purchase -10000 Crown Zenith and get 2000000 coins credited to my account. It seems like when I do this my pack count for that pack type goes negative as well. I can still exploit this by going into "pack debt" for one pack type and then opening unlimited packs of the other types.
+
 
 A similar problem happens for /users/{user_id}/open_packs/{pack_name}/{pack_quantity} where I can "open" a negative number of packs and they get added to my inventory. This circumnavigates the entire coin system so the exploit above isn't even required.
 
-There is no way to see how many coins I have
 
 
-/collection/{user_id}/get/{type}
-I would recommend making the input case insensitive. I was confused after I opened a pack got a Vulpix and tried to check my fire type pokemon and got an empty list when I passed in 'fire'. It should be as easy as adding a lower() call to check if the input and a database entry matches.
 
 The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation.
 For instance battle.py, collection.py, display.py could use a small documentation touch up.
@@ -364,7 +373,6 @@ For instance battle.py, collection.py, display.py could use a small documentatio
 
 
 
-In decks.py, the get_user_decks endpoint incorrectly returns a 404 error with message "User has too many decks (max 3)" when trying to view decks if a user has more than 3 decks. As a user I should be able to see all my decks, and not get an error unless I have a very large number of decks.
 
 
 
