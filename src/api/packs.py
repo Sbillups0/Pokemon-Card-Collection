@@ -75,7 +75,7 @@ def check_pack_exists(pack_name: str):
 
         return pack_data[0]
 
-@router.get("/user/{user_id}/reccommended_pack", tags=["packs"], response_model=RecommendedPack)
+@router.get("/{user_id}/reccommended_pack", tags=["packs"], response_model=RecommendedPack)
 def recommended_pack(user_id: int):
     #Looks at a user's current collection, and the total distrubition of cards in each pack, assigning a value to each pack based
     #on how many cards the user owns from it, returning whichever pack has the highest value.
@@ -107,7 +107,7 @@ def recommended_pack(user_id: int):
 
     return RecommendedPack(Pack=pack.pack_name,Currently_Missing=20 - pack.unique_cards_owned)
 
-@router.post("/open_packs/user/{user_id}/{pack_name}/{pack_quantity}", tags=["packs"], response_model=PackOpenResult)
+@router.post("/open_packs/{user_id}/{pack_name}/{pack_quantity}", tags=["packs"], response_model=PackOpenResult)
 def open_packs(user_id: int, pack_name: str, pack_quantity: int):
     check_user_exists(user_id)
     
@@ -182,7 +182,7 @@ def open_packs(user_id: int, pack_name: str, pack_quantity: int):
     return PackOpenResult(remaining_coins=remaining_coins, opened_packs=opened_packs)
 
 
-@router.post("/purchase_packs/user/{user_id}/{pack_name}/{pack_quantity}", tags=["packs"], response_model=Checkout)
+@router.post("/purchase_packs/{user_id}/{pack_name}/{pack_quantity}", tags=["packs"], response_model=Checkout)
 def purchase_packs(user_id: int, pack_name: str, pack_quantity: int):
     """The user given by the user_id gives the name of a specific pack and the number they'd
         like to purchase. The price is subtracted from their gold and the packs are added to 
