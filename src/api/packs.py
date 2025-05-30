@@ -108,7 +108,14 @@ def recommended_pack(user_id: int):
     return RecommendedPack(Pack=pack.pack_name,Currently_Missing=20 - pack.unique_cards_owned)
 
 @router.post("/open_packs/{user_id}/{pack_name}/{pack_quantity}", tags=["packs"], response_model=PackOpenResult)
-def open_packs(user_id: int, pack_name: str, pack_quantity: int):
+def open_packs(user_id: int, 
+               pack_name: str, 
+               pack_quantity: int = Path(..., gt=0, description="Number of packs to purchase (must be > 0)")):
+    if pack_quantity <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Pack quantity must be a positive integer"
+        )
     check_user_exists(user_id)
     
 
@@ -183,10 +190,18 @@ def open_packs(user_id: int, pack_name: str, pack_quantity: int):
 
 
 @router.post("/purchase_packs/{user_id}/{pack_name}/{pack_quantity}", tags=["packs"], response_model=Checkout)
-def purchase_packs(user_id: int, pack_name: str, pack_quantity: int):
+def purchase_packs(user_id: int,
+                   pack_name: str, 
+                   pack_quantity: int = Path(..., gt=0, description="Number of packs to purchase (must be > 0)")):
     """The user given by the user_id gives the name of a specific pack and the number they'd
         like to purchase. The price is subtracted from their gold and the packs are added to 
         their inventory."""
+
+    if pack_quantity <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Pack quantity must be a positive integer"
+        )
      # 1. Check user existence early
     check_user_exists(user_id)
      # 2. Check pack existence and get pack_id
