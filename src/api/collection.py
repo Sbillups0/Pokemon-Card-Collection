@@ -38,7 +38,7 @@ def check_user_exists(user_id: int):
 @router.get("/{user_id}/{type}", tags=["collection"], response_model = CollectionResponse)
 def get_collection_by_type(user_id: int, type: str):
     check_user_exists(user_id)
-    type = type.strip().capitalize()
+    type = type.strip()
     total_value = 0.0
    
     collection = []
@@ -56,7 +56,7 @@ def get_collection_by_type(user_id: int, type: str):
         cards = connection.execute(sqlalchemy.text("""
             SELECT c.name, c.type, c.price, col.quantity FROM collection AS col
             LEFT JOIN cards AS c ON col.card_id = c.id
-            WHERE col.user_id = :user_id AND c.type = :type
+            WHERE col.user_id = :user_id AND LOWER(c.type) = LOWER(:type)
                                                 """),
             {"user_id": user_id, "type": type}
         ).all()
