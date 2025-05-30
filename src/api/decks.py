@@ -26,7 +26,7 @@ class Deck(BaseModel):
             raise ValueError("Deck name cannot be empty")
         return value
 
-@router.post("/users/{user_id}/create_deck/{deck_name}")
+@router.post("/{user_id}/create_deck/{deck_name}")
 def create_deck(user_id: int, deck_name: str, cards: List[str]):
     """
     Create a deck for a user.
@@ -100,7 +100,7 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
             )
         return {"message": "Deck created successfully"}
 
-@router.get("/users/{user_id}/decks")
+@router.get("/{user_id}/decks")
 def get_user_decks(user_id: int):
     with db.engine.begin() as connection:
         # Check user exists (optional but safe)
