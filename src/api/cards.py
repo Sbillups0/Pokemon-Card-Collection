@@ -63,7 +63,7 @@ def get_all_cards():
 @router.get("/{card_name}")
 def get_card_by_name(card_name: str):
     """
-    Retrieve details of a specific card by its name.
+    Retrieve details of a specific card by its name (case-insensitive).
 
     Args:
         card_name (str): Name of the card to retrieve.
@@ -83,15 +83,14 @@ def get_card_by_name(card_name: str):
                 packs.name AS pack
             FROM cards
             JOIN packs ON cards.pack_id = packs.id
-            WHERE cards.name = :card_name
+            WHERE LOWER(cards.name) = LOWER(:card_name)
         """), {"card_name": card_name}).fetchone()
 
         if not result:
             raise HTTPException(
                 status_code=404,
                 detail=(
-                    "Card not found. Make sure the card name is correctly capitalized "
-                    "(e.g., 'Fire Dragon' not 'fire dragon')."
+                    f"Card '{card_name}' not found. Check for typos or try another name."
                 )
             )
 
