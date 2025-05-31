@@ -47,6 +47,49 @@ def check_user_exists(user_id: int):
             )
         else:
             return True
+@router.get("/types", tags=["collection"])
+def get_card_types():
+    """
+    Retrieve all distinct card types available in the catalog.
+
+    Returns:
+        dict: Dictionary containing a list of distinct card types under the key "types".
+    """
+    with db.engine.begin() as connection:
+        types = connection.execute(
+            sqlalchemy.text("SELECT DISTINCT type FROM cards")
+        ).scalars().all()
+
+    return {"types": types}
+
+@router.get("/{user_id}/value", tags=["collection"])
+def get_total_collection_value(user_id: int):
+    """
+    Calculate the total estimated monetary value of a user's entire card collection.
+
+    Args:
+        user_id (int): The ID of the user.
+
+    Raises:
+        HTTPException 404: If the user does not exist.
+
+    Returns:
+        dict: Dictionary with 'user_id' and 'total_value' keys.
+    """
+    check_user_exists(user_id)
+
+    with db.engine.begin() as connection:
+        result = connection.execute(
+            sqlalchemy.text("""
+                SELECT SUM(c.price * col.quantity) as total_value
+                FROM collection AS col
+                LEFT JOIN cards AS c ON col.card_id = c.id
+                WHERE col.user_id = :user_id
+            """),
+            {"user_id": user_id}
+        ).scalar()
+
+    return {"user_id": user_id, "total_value": result or 0.0}
 
 @router.get("/{user_id}/{type}", tags=["collection"], response_model=CollectionResponse)
 def get_collection_by_type(user_id: int, type: str):
@@ -131,46 +174,3 @@ def get_full_collection(user_id: int):
 
     return CollectionResponse(Cards=collection, TotalValue=total_value)
 
-@router.get("/types", tags=["collection"])
-def get_card_types():
-    """
-    Retrieve all distinct card types available in the catalog.
-
-    Returns:
-        dict: Dictionary containing a list of distinct card types under the key "types".
-    """
-    with db.engine.begin() as connection:
-        types = connection.execute(
-            sqlalchemy.text("SELECT DISTINCT type FROM cards")
-        ).scalars().all()
-
-    return {"types": types}
-
-@router.get("/{user_id}/value", tags=["collection"])
-def get_total_collection_value(user_id: int):
-    """
-    Calculate the total estimated monetary value of a user's entire card collection.
-
-    Args:
-        user_id (int): The ID of the user.
-
-    Raises:
-        HTTPException 404: If the user does not exist.
-
-    Returns:
-        dict: Dictionary with 'user_id' and 'total_value' keys.
-    """
-    check_user_exists(user_id)
-
-    with db.engine.begin() as connection:
-        result = connection.execute(
-            sqlalchemy.text("""
-                SELECT SUM(c.price * col.quantity) as total_value
-                FROM collection AS col
-                LEFT JOIN cards AS c ON col.card_id = c.id
-                WHERE col.user_id = :user_id
-            """),
-            {"user_id": user_id}
-        ).scalar()
-
-    return {"user_id": user_id, "total_value": result or 0.0}
