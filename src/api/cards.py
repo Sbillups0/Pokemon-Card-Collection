@@ -143,7 +143,7 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
             SELECT dc.id FROM deck_cards dc
             JOIN decks d ON dc.deck_id = d.id
             WHERE d.user_id = :user_id AND LOWER(dc.card_name) = LOWER(:card_name)
-        """), {"user_id": user_id, "card_id": card_id}).fetchone()
+        """), {"user_id": user_id, "card_name": card_name}).fetchone()
 
         if card_in_deck:
             raise HTTPException(
