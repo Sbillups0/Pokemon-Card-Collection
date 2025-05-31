@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, conint
 from typing import List
 from src import database as db
 import sqlalchemy
@@ -10,7 +10,7 @@ router = APIRouter(
 )
 
 class SellByNameRequest(BaseModel):
-    quantity: int
+    quantity: conint(gt=0)  # quantity must be a positive integer
 
 def check_user_exists(user_id: int):
     """
@@ -112,7 +112,7 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
         req (SellByNameRequest): Request body containing quantity to sell.
 
     Returns:
-        Message confirming successful sale and total coins earned.
+        Message confirming successful sale, coins earned, and remaining quantity.
 
     Raises:
         HTTPException 404 if the user or card does not exist.
@@ -122,29 +122,28 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
         # Verify user exists
         check_user_exists(user_id)
 
-        # Retrieve card ID and price
+        # Case-insensitive card lookup for id and price
         card = conn.execute(sqlalchemy.text("""
-            SELECT id, price FROM cards WHERE name = :card_name
+            SELECT id, price FROM cards WHERE LOWER(name) = LOWER(:card_name)
         """), {"card_name": card_name}).fetchone()
 
         if not card:
             raise HTTPException(
                 status_code=404,
                 detail=(
-                    "Card not found. Make sure the card name is correctly capitalized "
-                    "(e.g., 'Fire Dragon' not 'fire dragon')."
+                    "Card not found. Make sure the card name is correctly spelled and capitalized."
                 )
             )
 
         card_id = card.id
         card_price = card.price
 
-        # Check if card is in any decks owned by user
+        # Check if card is in any decks owned by user (by card_id)
         card_in_deck = conn.execute(sqlalchemy.text("""
             SELECT dc.id FROM deck_cards dc
             JOIN decks d ON dc.deck_id = d.id
-            WHERE d.user_id = :user_id AND dc.card_name = :card_name
-        """), {"user_id": user_id, "card_name": card_name}).fetchone()
+            WHERE d.user_id = :user_id AND dc.card_id = :card_id
+        """), {"user_id": user_id, "card_id": card_id}).fetchone()
 
         if card_in_deck:
             raise HTTPException(
@@ -187,5 +186,7 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
         """), {"value": total_value, "user_id": user_id})
 
     return {
-        "message": f"Sold {req.quantity} '{card_name}' for {total_value} coins"
+        "message": f"Sold {req.quantity} '{card_name}' for {total_value} coins",
+        "coins_earned": total_value,
+        "remaining_quantity": updated_row.quantity
     }
