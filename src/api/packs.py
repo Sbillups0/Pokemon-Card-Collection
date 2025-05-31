@@ -160,7 +160,7 @@ def open_packs(user_id: int, pack_name: str, pack_quantity: int = Path(..., gt=0
 
         if owned_packs is None or owned_packs < pack_quantity:
             raise HTTPException(
-                status_code=400,
+                status_code=409,
                 detail=f"User only has {owned_packs or 0} packs of '{pack_name}' but requested {pack_quantity}"
             )
 
@@ -261,7 +261,7 @@ def purchase_packs(user_id: int, pack_name: str, pack_quantity: int = Path(..., 
         user_coins = user_data[0]
         if user_coins < total_cost:
             raise HTTPException(
-                status_code=400,
+                status_code=409,
                 detail=f"Not enough coins. Current balance: {user_coins}, required: {total_cost}"
             )
 
