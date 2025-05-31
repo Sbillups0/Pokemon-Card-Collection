@@ -6,6 +6,15 @@
 - `.one()` can raise an exception if no result is found before checking for deck existence.
 - **Suggestion**: Use `.fetchone()` instead and check if the result is `None` before accessing the value.
 - Were the battle endpoints supposed to be implemented? I saw that you had a battle.py, but I was not able to use it in the testing. I think that using the battle endpoints would help improve the experience.
+- While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
+- The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
+- Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
+- The error messages across endpoints are inconsistent and not very detailed. For example:
+
+
+
+
+
 
 ### battle.py has been update for the above review comment
 
@@ -20,6 +29,15 @@
 - In catalog.py, I would suggest in create_catalog to add either a warning log or raise an exception if the catalog returns empty.
 - In create_catalog, I would suggest adding an ORDER BY for this query: SELECT name, price FROM packs to return the packs that are expected with that call and in an order that is pre-determined.
 - If you only plan on allowing users to purchase packs and nothing else, you could simplify the endpoint url to just /catalog or if you will implement other kinds of purchases then make sure to rename the url so it is /catalog/packs instead of /packs/catalogs (By having packs before catalog it implies that it is a pack specific endpoint but it’s a catalog related endpoint)
+- While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
+- The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
+- Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
+- The error messages across endpoints are inconsistent and not very detailed. For example:
+
+
+
+
+
 
 ### catalog.py has been updated for the above review comments 
 
@@ -43,6 +61,21 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 - Get Collection: It would be nice to have the collection endpoint filter by something, this could be type, name, or price.
 - No way to see total collection value
 - /collection/{user_id}/get/{type}:I would recommend making the input case insensitive. I was confused after I opened a pack got a Vulpix and tried to check my fire type pokemon and got an empty list when I passed in 'fire'. It should be as easy as adding a lower() call to check if the input and a database entry matches.
+- It would be helpful to add an endpoint that returns all the current types of cards that exist so users know which card types they can search for
+- It would be cool to have a total estimated value of my collection as a user in order to see if I should sell, and I can build on my collection and try to get more valuable cards.
+- It would be nice to see other users' collections or total collection value. Maybe a leaderboard or general way to inspect the collections of others.
+- While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
+- The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
+- Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
+- The error messages across endpoints are inconsistent and not very detailed. For example:
+
+
+
+
+
+
+
+
 
 
 ### collection.py has been updated for the above review comments 
@@ -78,6 +111,17 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 - In cards.py, the sell_card_by_name endpoint allows selling cards that are currently in decks. This could lead to invalid decks where users have decks containing cards they no longer own. The endpoint should either prevent selling cards that are in decks or remove the cards from decks when sold.
 - In sell by card name, it might be helpful to tell the user how many of that card they own in the exception itself since they can’t see the printed outputs
 - In both sell card by name and get card by name when raising the error for card not found, it would be good to also include a sentence about how the name should be formatted (capitalized) because passing in the card name with all lowercase letters means that no card_id is returned
+- While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
+- The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
+- Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
+- The error messages across endpoints are inconsistent and not very detailed.
+- Invalid card names should specify what valid options are or specify things like the name to match the databases capitalization
+
+
+
+
+
+
 
 ### cards.py has been updated for the above review comments 
 
@@ -93,10 +137,24 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 - Selling one card at a time was time-consuming, especially if I opened multiple packs. I think that having an easy function to sell duplicate cards or having some kind of bulk selling would be useful.
          This is a good ask and it is not addressed as it is a complex sequence
 
+- I would add rarities to the cards or show probabilities of pulling certain cards to add an element of excitement when getting rarer cards.
+         This is a good ask. It is a complex flow and it was considered as part of complex flow exercise.
+
+
+
 ## display.py
 
 ### Review comments
 - In display.py, in the first query, you should also filter by user_id, and use this: WHERE ca.name = :card_name AND co.user_id = :user_id. This makes it so that each user can only get their own collection.
+- While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
+- The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
+- Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
+- The error messages across endpoints are inconsistent and not very detailed. For example:
+
+
+
+
+
 
 ### display.py has been updated for the above review comments 
 
@@ -155,6 +213,17 @@ Two requests come in at about the same time.
 - packs/users/{user_id}/purchase_packs/{pack_name}/{pack_quantity}
 There is no input validation for the quantity of packs bought. If I pass in negative number of packs it removes that many of the pack from my account, and credits me the coin price. This can work fine when used like returning an item (Like if I have 2 surging sparks packs and purchase -2 of them they get removed from my inventory and I get 2 * pack price back. Everything is the same state as before the initial purchase of the packs). However, it doesn't check how many of that pack I have, so I can input any size negative number and get essentially infinite coins. So I can purchase -10000 Crown Zenith and get 2000000 coins credited to my account. It seems like when I do this my pack count for that pack type goes negative as well. I can still exploit this by going into "pack debt" for one pack type and then opening unlimited packs of the other types.
 - Make sure to be consistent with the naming of the endpoints (ex. If you’re going to add a /user before every /{user_id} (Decks and packs have the endpoint urls implemented as decks/users/{user_id}/… and packs/users/{user_id}/… while collection and inventory just only have user_id (ex. /inventory/{user_id}/audit))
+- A similar problem happens for /users/{user_id}/open_packs/{pack_name}/{pack_quantity} where I can "open" a negative number of packs and they get added to my inventory. This circumnavigates the entire coin system so the exploit above isn't even required.
+- While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
+- The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
+- Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
+- The error messages across endpoints are inconsistent and not very detailed. For example:
+
+
+
+
+
+
 
 
 ### packs.py has been updated for the above review comments
@@ -177,6 +246,15 @@ Others use /action/{user_id}
 Some include unnecessary words like "get"
 Inconsistent use of plurals
 - There is no way to see how many coins I have
+- While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
+- The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
+- Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
+- The error messages across endpoints are inconsistent and not very detailed. For example:
+
+
+
+
+
 
 
 ### user.py has been updated for the above review comments
@@ -187,6 +265,15 @@ Inconsistent use of plurals
 - I think that the Get Inventory endpoint should also return how many coins I have. It was hard to know how many coins I had when testing locally.
 - In get_inventory it’s probably best if you check if the user exists or not (When I passed in a larger user_id (30) because my user_id was 12 it just returned an empty catalog; if the user doesn’t exist it would be nice to return a message saying that the user doesn’t exist)
 - The Get Inventory endpoint should return the user's coin balance. Currently, there's no easy way to check how many coins you have, which makes it difficult to plan purchases or know when you can afford packs. As of right now I just have to trial and error my way through it.
+- While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
+- The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
+- Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
+- The error messages across endpoints are inconsistent and not very detailed. For example:
+
+
+
+
+
 
 ### inventory.py has been updated for the above review comments
 
@@ -212,6 +299,15 @@ but id is never used. You can either use id for something later, or you don't ne
 - In creating deck when you check if a deck with that name exists make sure your exception specifies that the deck name already exists since it’s not necessarily that combination of cards
 - There are redundant checks for invalid cards after getting deck id in create_deck in decks.py(lines 82-96 seem like a copy paste of lines 53-68 and don’t seem to serve any additional purpose)
 - Instructions for multiple endpoints could be updated to be more clear. Like creating a deck there is nothing telling the user that a deck must have 5 cards and 5 cards only. As of right now if a user has 1 copy of a card they can make a deck with with 5 copies of it. I don't know if that is desired behavior, but deck building guidelines would help with the confusion.
+- While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
+- The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
+- Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
+- The error messages across endpoints are inconsistent and not very detailed. For example:
+
+
+
+
+
 
 ### decks.py has been updated for the above review comments
 
@@ -286,6 +382,7 @@ In decks.py, the get_user_decks endpoint incorrectly returns a 404 error with me
 
 
 
+Display:
 Didn’t seem like there was a schema for the display table in schema.sql and the alembic revisions so make sure to add that somewhere (But from the code for the endpoint I think you would just need to have a user_id and card_id column and the primary key would be the tuple of both of those values)
 
 
@@ -293,39 +390,6 @@ Didn’t seem like there was a schema for the display table in schema.sql and th
 
 
 
-
-
-
-It would be helpful to add an endpoint that returns all the current types of cards that exist so users know which card types they can search for
-
-
-
-
-
-I would add rarities to the cards or show probabilities of pulling certain cards to add an element of excitement when getting rarer cards.
-
-
-
-
-
-It would be cool to have a total estimated value of my collection as a user in order to see if I should sell, and I can build on my collection and try to get more valuable cards.
-
-Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
-
-
-
-
-
-
-
-
-
-
-
-The error messages across endpoints are inconsistent and not very detailed. For example:
-
-Invalid card names should specify what valid options are or specify things like the name to match the databases capitalization
-It would be nice to see other users' collections or total collection value. Maybe a leaderboard or general way to inspect the collections of others.
 
 Cards lack attributes that would make collecting more interesting:
 
@@ -351,24 +415,17 @@ Deck management is very limited:
 
 
 User profile functionality is very limited:
-
-
 No statistics on cards owned
 No history of transactions
 No way to track progress (Percent of cards from pack owned)
-While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
 
 
 
 
 
-A similar problem happens for /users/{user_id}/open_packs/{pack_name}/{pack_quantity} where I can "open" a negative number of packs and they get added to my inventory. This circumnavigates the entire coin system so the exploit above isn't even required.
 
 
 
-
-The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation.
-For instance battle.py, collection.py, display.py could use a small documentation touch up.
 
 
 
