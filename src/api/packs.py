@@ -1,15 +1,14 @@
 from dataclasses import dataclass
-from fastapi import APIRouter, Depends, status, Path
-from pydantic import BaseModel, Field, field_validator
+from fastapi import APIRouter, Depends, status, Path, HTTPException
+from pydantic import BaseModel
 from typing import List
-from fastapi import HTTPException
-
 import sqlalchemy
+import random
+import math
+
 from src.api import auth
 from src import database as db
 from src.api.catalog import Pack
-import random 
-import math
 from src.api.collection import check_user_exists
 
 router = APIRouter(
@@ -18,58 +17,67 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
-"""class Pack(BaseModel):
-    name: str
-    price: int"""
+
 
 class Checkout(BaseModel):
+    """Model for representing the result of a pack purchase."""
     pack: str
     total_spent: int
 
+
 class PackOpened(BaseModel):
+    """Model for a single opened pack and the cards it contains."""
     name: str
     cards: List[str]
 
+
 class RecommendedPack(BaseModel):
+    """Model representing a recommended pack and how many cards the user is missing from it."""
     Pack: str
     Currently_Missing: int
 
+
 class PackOpenResult(BaseModel):
+    """Model representing the result of opening multiple packs."""
     remaining_coins: int
     opened_packs: List[PackOpened]
 
-def check_user_exists(user_id: int):
-    with db.engine.begin() as connection:
-        user = connection.execute(
-            sqlalchemy.text("SELECT id FROM users WHERE id = :user_id"),
-            {"user_id": user_id}
-        ).scalar_one_or_none()
-
-    if not user:
-        raise HTTPException(status_code=404, detail=f"No user found with ID {user_id}")
 
 
 def weighted_random_choice(item_list):
-    # Get the maximum price to invert weights
+    """
+    Selects an item from the list with a bias toward lower-priced items.
+
+    Args:
+        item_list (List[Tuple[str, int]]): List of (name, price) tuples.
+
+    Returns:
+        str: The name of the selected item.
+    """
     max_price = max(price for _, price in item_list)
-
-    # Create weights: lower price = higher weight
     weights = [math.sqrt(max_price - price + 1) for _, price in item_list]
-
-    # Extract names
     names = [name for name, _ in item_list]
+    return random.choices(names, weights=weights, k=1)[0]
 
-    # Randomly choose based on weights
-    chosen = random.choices(names, weights=weights, k=1)[0]
-    return chosen
 
 def check_pack_exists(pack_name: str):
+    """
+    Ensures a pack with the given name exists in the database.
+
+    Args:
+        pack_name (str): Name of the pack.
+
+    Returns:
+        int: The ID of the pack.
+
+    Raises:
+        HTTPException: If the pack is not found.
+    """
     with db.engine.begin() as connection:
         pack = connection.execute(
             sqlalchemy.text("SELECT id FROM packs WHERE LOWER(name) = LOWER(:pack_name)"),
             {"pack_name": pack_name}
         ).fetchone()
-
     if not pack:
         raise HTTPException(
             status_code=404, 
@@ -78,17 +86,22 @@ def check_pack_exists(pack_name: str):
     return pack[0]
 
 
+
 @router.get("/{user_id}/recommended_pack", tags=["packs"], response_model=RecommendedPack)
 def recommended_pack(user_id: int):
-    #Looks at a user's current collection, and the total distrubition of cards in each pack, assigning a value to each pack based
-    #on how many cards the user owns from it, returning whichever pack has the highest value.
+    """
+    Recommends a pack to the user where they are missing the most cards.
+
+    Args:
+        user_id (int): ID of the user.
+
+    Returns:
+        RecommendedPack: The pack with the most missing cards.
+    """
     check_user_exists(user_id)
     with db.engine.begin() as connection:
-        pack_list = connection.execute(sqlalchemy.text("SELECT name FROM packs")).scalars().all()
-    
         results = connection.execute(
-            sqlalchemy.text(
-                """
+            sqlalchemy.text("""
                 SELECT
                     p.id AS pack_id,
                     p.name AS pack_name,
@@ -99,30 +112,44 @@ def recommended_pack(user_id: int):
                 LEFT JOIN collection col ON col.card_id = c.id AND col.user_id = :user_id
                 GROUP BY p.id, p.name
                 ORDER BY p.id
-                """     
-        ), {"user_id": user_id}).fetchall()
-        min = 99999999
-        for row in results:
-            print(f"Pack: {row.pack_name}, Unique Cards Owned: {row.unique_cards_owned}")
-            if row.unique_cards_owned < min:
-                min = row.unique_cards_owned
-                pack = row
+            """),
+            {"user_id": user_id}
+        ).fetchall()
 
-    return RecommendedPack(Pack=pack.pack_name,Currently_Missing=20 - pack.unique_cards_owned)
+        min_cards_owned = float('inf')
+        recommended = None
+        for row in results:
+            if row.unique_cards_owned < min_cards_owned:
+                min_cards_owned = row.unique_cards_owned
+                recommended = row
+
+    return RecommendedPack(Pack=recommended.pack_name, Currently_Missing=20 - recommended.unique_cards_owned)
+
 
 @router.post("/open_packs/{user_id}/{pack_name}/{pack_quantity}", tags=["packs"], response_model=PackOpenResult)
-def open_packs(user_id: int, 
-               pack_name: str, 
-               pack_quantity: int = Path(..., gt=0, description="Number of packs to purchase (must be > 0)")):
+def open_packs(user_id: int, pack_name: str, pack_quantity: int = Path(..., gt=0, description="Must be > 0")):
+    """
+    Opens a number of packs and adds the drawn cards to the user's collection.
+
+    Args:
+        user_id (int): ID of the user.
+        pack_name (str): Name of the pack to open.
+        pack_quantity (int): Number of packs to open.
+
+    Returns:
+        PackOpenResult: Cards drawn and updated coin balance.
+
+    Raises:
+        HTTPException: If user does not have enough packs or pack does not exist.
+    """
     if not isinstance(pack_quantity, int) or pack_quantity <= 0:
         raise HTTPException(status_code=422, detail="Pack quantity must be a positive integer.")
-        
+
     check_user_exists(user_id)
-    
 
     with db.engine.begin() as connection:
         pack_id = check_pack_exists(pack_name)
-        # 1. Check if user has enough packs to open
+
         owned_packs = connection.execute(
             sqlalchemy.text("""
                 SELECT quantity FROM inventory
@@ -130,17 +157,13 @@ def open_packs(user_id: int,
             """),
             {"user_id": user_id, "pack_id": pack_id}
         ).scalar_one_or_none()
-        
-       
-        
+
         if owned_packs is None or owned_packs < pack_quantity:
             raise HTTPException(
                 status_code=400,
                 detail=f"User only has {owned_packs or 0} packs of '{pack_name}' but requested {pack_quantity}"
             )
 
-
-        # 2. Update inventory to reflect packs opened
         connection.execute(
             sqlalchemy.text("""
                 UPDATE inventory
@@ -150,7 +173,6 @@ def open_packs(user_id: int,
             {"user_id": user_id, "pack_quantity": pack_quantity, "pack_id": pack_id}
         )
 
-        # 3. Fetch all cards from the pack (once instead of in every loop)
         packs = connection.execute(
             sqlalchemy.text("""
                 SELECT cards.name, cards.price FROM cards
@@ -160,7 +182,6 @@ def open_packs(user_id: int,
             {"pack_id": pack_id}
         ).all()
 
-        # Get remaining coin balance
         remaining_coins = connection.execute(
             sqlalchemy.text("""
                 SELECT coins FROM users
@@ -169,15 +190,11 @@ def open_packs(user_id: int,
             {"user_id": user_id}
         ).scalar_one()
 
-
-        # 4. Open packs and collect cards
         opened_packs = []
         for i in range(pack_quantity):
             card_list = []
-            for j in range(5):
+            for _ in range(5):
                 chosen_card = weighted_random_choice(packs)
-
-                # Insert or update collection
                 connection.execute(
                     sqlalchemy.text("""
                         INSERT INTO collection (user_id, card_id, quantity)
@@ -188,34 +205,34 @@ def open_packs(user_id: int,
                     {"user_id": user_id, "card_name": chosen_card}
                 )
                 card_list.append(chosen_card)
-
             opened_packs.append(PackOpened(name=f"{pack_name} #{i + 1}", cards=card_list))
 
     return PackOpenResult(remaining_coins=remaining_coins, opened_packs=opened_packs)
 
 
 @router.post("/purchase_packs/{user_id}/{pack_name}/{pack_quantity}", tags=["packs"], response_model=Checkout)
-def purchase_packs(user_id: int,
-                   pack_name: str, 
-                   pack_quantity: int = Path(..., gt=0, description="Number of packs to purchase (must be > 0)")):
+def purchase_packs(user_id: int, pack_name: str, pack_quantity: int = Path(..., gt=0, description="Must be > 0")):
     """
-    Purchase a specified number of card packs for a user.
+    Allows a user to purchase a specific quantity of packs using in-game coins.
 
-    - **user_id**: ID of the user making the purchase.
-    - **pack_name**: Name of the pack to be purchased.
-    - **pack_quantity**: Number of packs to purchase (must be > 0).
-    
-    Returns the total cost and the name of the pack.
+    Args:
+        user_id (int): ID of the user.
+        pack_name (str): Name of the pack to purchase.
+        pack_quantity (int): Number of packs to purchase.
+
+    Returns:
+        Checkout: Confirmation of purchase with total amount spent.
+
+    Raises:
+        HTTPException: If the user has insufficient coins or pack does not exist.
     """
-
     if not isinstance(pack_quantity, int) or pack_quantity <= 0:
         raise HTTPException(status_code=422, detail="Pack quantity must be a positive integer.")
-     # 1. Check user existence early
+
     check_user_exists(user_id)
-     # 2. Check pack existence and get pack_id
     pack_id = check_pack_exists(pack_name)
+
     with db.engine.begin() as connection:
-        # 1. Fetch pack info
         pack_data = connection.execute(
             sqlalchemy.text("""
                 SELECT id, price FROM packs
@@ -230,7 +247,6 @@ def purchase_packs(user_id: int,
         pack_id, pack_price = pack_data
         total_cost = pack_price * pack_quantity
 
-        # 2. Check user has enough coins
         user_data = connection.execute(
             sqlalchemy.text("""
                 SELECT coins FROM users
@@ -249,7 +265,6 @@ def purchase_packs(user_id: int,
                 detail=f"Not enough coins. Current balance: {user_coins}, required: {total_cost}"
             )
 
-        # 3. Check if pack already in inventory
         inventory_data = connection.execute(
             sqlalchemy.text("""
                 SELECT quantity FROM inventory
@@ -259,7 +274,6 @@ def purchase_packs(user_id: int,
         ).fetchone()
 
         if inventory_data:
-            # Update existing inventory
             connection.execute(
                 sqlalchemy.text("""
                     UPDATE inventory
@@ -269,7 +283,6 @@ def purchase_packs(user_id: int,
                 {"pack_quantity": pack_quantity, "user_id": user_id, "pack_id": pack_id}
             )
         else:
-            # Insert new inventory record
             connection.execute(
                 sqlalchemy.text("""
                     INSERT INTO inventory (user_id, pack_id, quantity)
@@ -278,7 +291,6 @@ def purchase_packs(user_id: int,
                 {"user_id": user_id, "pack_id": pack_id, "quantity": pack_quantity}
             )
 
-        # 4. Subtract coins
         connection.execute(
             sqlalchemy.text("""
                 UPDATE users
@@ -287,4 +299,5 @@ def purchase_packs(user_id: int,
             """),
             {"total_cost": total_cost, "user_id": user_id}
         )
-        return Checkout(pack = pack_name, total_spent = total_cost)
+
+    return Checkout(pack=pack_name, total_spent=total_cost)
