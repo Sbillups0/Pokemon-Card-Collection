@@ -142,7 +142,7 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
         card_in_deck = conn.execute(sqlalchemy.text("""
             SELECT dc.id FROM deck_cards dc
             JOIN decks d ON dc.deck_id = d.id
-            WHERE d.user_id = :user_id AND dc.card_id = :card_id
+            WHERE d.user_id = :user_id AND LOWER(dc.card_name) = LOWER(:card_name)
         """), {"user_id": user_id, "card_id": card_id}).fetchone()
 
         if card_in_deck:
