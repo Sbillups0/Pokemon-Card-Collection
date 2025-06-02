@@ -33,6 +33,8 @@ def battle(user_id: int, deck_name: str) -> BattleResponse:
         HTTPException 404 if the user or the deck does not exist.
         HTTPException 400 if the deck contains no cards.
     """
+    start_time = time.time()  # Start timer
+    
     check_user_exists(user_id)
 
     with db.engine.begin() as connection:
@@ -92,5 +94,7 @@ def battle(user_id: int, deck_name: str) -> BattleResponse:
                 """),
                 {"prize": prize, "user_id": user_id}
             )
-
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Completed in {elapsed_ms:.2f} ms")
     return BattleResponse(result=battle_result, prize=prize)

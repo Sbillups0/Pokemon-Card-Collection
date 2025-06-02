@@ -1,3 +1,4 @@
+import time
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, conint
 from typing import List
@@ -37,6 +38,7 @@ def get_all_cards():
     Raises:
         HTTPException 404 if no cards are found in the database.
     """
+    start_time = time.time()  # Start timer
     with db.engine.connect() as conn:
         result = conn.execute(sqlalchemy.text("""
             SELECT 
@@ -50,7 +52,9 @@ def get_all_cards():
 
         if not result:
             raise HTTPException(status_code=404, detail="No cards found")
-
+        end_time = time.time()  # End timer
+        elapsed_ms = (end_time - start_time) * 1000
+        print(f"Completed in {elapsed_ms:.2f} ms")
         return [
             {
                 "name": row.name,
@@ -74,6 +78,7 @@ def get_card_by_name(card_name: str):
     Raises:
         HTTPException 404 if the card is not found.
     """
+    start_time = time.time()  # Start timer
     with db.engine.connect() as conn:
         result = conn.execute(sqlalchemy.text("""
             SELECT 
@@ -93,7 +98,9 @@ def get_card_by_name(card_name: str):
                     f"Card '{card_name}' not found. Check for typos or try another name."
                 )
             )
-
+        end_time = time.time()  # End timer
+        elapsed_ms = (end_time - start_time) * 1000
+        print(f"Completed in {elapsed_ms:.2f} ms")
         return {
             "name": result.name,
             "price": result.price,
@@ -118,6 +125,7 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
         HTTPException 404 if the user or card does not exist.
         HTTPException 400 if the card is in the user's decks or if quantity is insufficient.
     """
+    start_time = time.time()  # Start timer
     with db.engine.begin() as conn:
         # Verify user exists
         check_user_exists(user_id)
@@ -184,7 +192,9 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
         conn.execute(sqlalchemy.text("""
             UPDATE users SET coins = coins + :value WHERE id = :user_id
         """), {"value": total_value, "user_id": user_id})
-
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Completed in {elapsed_ms:.2f} ms")
     return {
         "message": f"Sold {req.quantity} '{card_name}' for {total_value} coins",
         "coins_earned": total_value,

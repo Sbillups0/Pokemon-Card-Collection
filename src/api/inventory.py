@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field
 from typing import List
 import sqlalchemy
-
+import time
 from src.api import auth
 from src import database as db
 
@@ -60,6 +60,7 @@ def get_inventory(user_id: int) -> InventoryAudit:
     Raises:
         HTTPException (404): If the user with the given ID does not exist.
     """
+    start_time = time.time()  # Start timer
     with db.engine.begin() as connection:
         # Validate that the user exists
         check_user_exists(user_id)
@@ -88,5 +89,7 @@ def get_inventory(user_id: int) -> InventoryAudit:
             )
             for row in owned_packs
         ]
-
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Inventory audit for user {user_id} completed in {elapsed_ms:.2f} ms")
     return InventoryAudit(coins=coins, packs=pack_inventory)

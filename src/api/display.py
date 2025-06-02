@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import time
 from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from typing import List
@@ -32,6 +33,7 @@ def add_to_display(user_id: int, card_name: str):
         HTTPException 403: If the user's display already contains 4 cards.
         HTTPException 403: If the card is already present in the user's display.
     """
+    start_time = time.time()  # Start timer
     # Verify the user exists
     check_user_exists(user_id)
 
@@ -96,3 +98,6 @@ def add_to_display(user_id: int, card_name: str):
             ),
             {"user_id": user_id, "card_id": card_id}
         )
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Completed in {elapsed_ms:.2f} ms")

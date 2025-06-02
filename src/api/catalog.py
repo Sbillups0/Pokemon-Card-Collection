@@ -1,3 +1,4 @@
+import time
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
@@ -26,6 +27,7 @@ def create_catalog() -> List[Pack]:
     Returns:
         List[Pack]: A list of Pack objects representing the catalog.
     """
+    
     catalog_list = []
     with db.engine.begin() as connection:
         rows = connection.execute(
@@ -51,7 +53,6 @@ def create_catalog() -> List[Pack]:
             catalog_list.append(Pack(name=name, price=price))
         else:
             break
-
     return catalog_list
 
 @router.get("/catalog/packs/", tags=["catalog"], response_model=List[Pack])
@@ -62,9 +63,13 @@ def get_catalog() -> List[Pack]:
     Returns:
         List[Pack]: List of packs (up to 6), sorted by price descending then name ascending.
     """
+    start_time = time.time()  # Start timer
     catalog = create_catalog()
     if not catalog:
         # Optional: raise 404 if no packs found
         # raise HTTPException(status_code=404, detail="No packs available in the catalog.")
         pass
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Completed in {elapsed_ms:.2f} ms")
     return catalog

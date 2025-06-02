@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import time
 from fastapi import APIRouter, Depends, status, Path, HTTPException
 from pydantic import BaseModel
 from typing import List
@@ -98,6 +99,7 @@ def recommended_pack(user_id: int):
     Returns:
         RecommendedPack: The pack with the most missing cards.
     """
+    start_time = time.time()  # Start timer
     check_user_exists(user_id)
     with db.engine.begin() as connection:
         results = connection.execute(
@@ -122,7 +124,9 @@ def recommended_pack(user_id: int):
             if row.unique_cards_owned < min_cards_owned:
                 min_cards_owned = row.unique_cards_owned
                 recommended = row
-
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Recommended pack for user {user_id} retrieved in {elapsed_ms:.2f} ms")
     return RecommendedPack(Pack=recommended.pack_name, Currently_Missing=20 - recommended.unique_cards_owned)
 
 
@@ -142,6 +146,7 @@ def open_packs(user_id: int, pack_name: str, pack_quantity: int = Path(..., gt=0
     Raises:
         HTTPException: If user does not have enough packs or pack does not exist.
     """
+    start_time = time.time()  # Start timer
     if not isinstance(pack_quantity, int) or pack_quantity <= 0:
         raise HTTPException(status_code=422, detail="Pack quantity must be a positive integer.")
 
@@ -206,7 +211,9 @@ def open_packs(user_id: int, pack_name: str, pack_quantity: int = Path(..., gt=0
                 )
                 card_list.append(chosen_card)
             opened_packs.append(PackOpened(name=f"{pack_name} #{i + 1}", cards=card_list))
-
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Completed in {elapsed_ms:.2f} ms")
     return PackOpenResult(remaining_coins=remaining_coins, opened_packs=opened_packs)
 
 
@@ -226,6 +233,7 @@ def purchase_packs(user_id: int, pack_name: str, pack_quantity: int = Path(..., 
     Raises:
         HTTPException: If the user has insufficient coins or pack does not exist.
     """
+    start_time = time.time()  # Start timer
     if not isinstance(pack_quantity, int) or pack_quantity <= 0:
         raise HTTPException(status_code=422, detail="Pack quantity must be a positive integer.")
 
@@ -299,5 +307,7 @@ def purchase_packs(user_id: int, pack_name: str, pack_quantity: int = Path(..., 
             """),
             {"total_cost": total_cost, "user_id": user_id}
         )
-
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Completed in {elapsed_ms:.2f} ms")
     return Checkout(pack=pack_name, total_spent=total_cost)

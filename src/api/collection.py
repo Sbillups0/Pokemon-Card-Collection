@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import time
 from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from typing import List
@@ -55,11 +56,14 @@ def get_card_types():
     Returns:
         dict: Dictionary containing a list of distinct card types under the key "types".
     """
+    start_time = time.time()  # Start timer
     with db.engine.begin() as connection:
         types = connection.execute(
             sqlalchemy.text("SELECT DISTINCT type FROM cards")
         ).scalars().all()
-
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Completed in {elapsed_ms:.2f} ms")
     return {"types": types}
 
 @router.get("/{user_id}/value", tags=["collection"])
@@ -76,6 +80,7 @@ def get_total_collection_value(user_id: int):
     Returns:
         dict: Dictionary with 'user_id' and 'total_value' keys.
     """
+    start_time = time.time()  # Start timer
     check_user_exists(user_id)
 
     with db.engine.begin() as connection:
@@ -88,7 +93,9 @@ def get_total_collection_value(user_id: int):
             """),
             {"user_id": user_id}
         ).scalar()
-
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Completed in {elapsed_ms:.2f} ms")
     return {"user_id": user_id, "total_value": result or 0.0}
 
 @router.get("/{user_id}/{type}", tags=["collection"], response_model=CollectionResponse)
@@ -107,6 +114,7 @@ def get_collection_by_type(user_id: int, type: str):
     Returns:
         CollectionResponse: Contains a list of cards and total value of the selected type.
     """
+    start_time = time.time()  # Start timer
     check_user_exists(user_id)
     type = type.strip()
     total_value = 0.0
@@ -136,7 +144,9 @@ def get_collection_by_type(user_id: int, type: str):
         for name, ctype, price, quantity in cards:
             collection.append(CollectionInfo(Card=Card(name=name, type=ctype, price=price), Quantity=quantity))
             total_value += price * quantity
-
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Completed in {elapsed_ms:.2f} ms")
     return CollectionResponse(Cards=collection, TotalValue=total_value)
 
 @router.get("/{user_id}", tags=["collection"], response_model=CollectionResponse)
@@ -153,6 +163,7 @@ def get_full_collection(user_id: int):
     Returns:
         CollectionResponse: Contains the full list of cards and their total value.
     """
+    start_time = time.time()  # Start timer
     check_user_exists(user_id)
     collection = []
     total_value = 0.0
@@ -171,6 +182,8 @@ def get_full_collection(user_id: int):
         for name, ctype, price, quantity in cards:
             collection.append(CollectionInfo(Card=Card(name=name, type=ctype, price=price), Quantity=quantity))
             total_value += price * quantity
-
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Completed in {elapsed_ms:.2f} ms")
     return CollectionResponse(Cards=collection, TotalValue=total_value)
 

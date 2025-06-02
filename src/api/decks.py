@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import time
 from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from typing import List
@@ -50,6 +51,7 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
     Returns:
         dict: Success message on deck creation.
     """
+    start_time = time.time()  # Start timer
     with db.engine.begin() as connection:
         # Validate exact deck size
         if len(cards) != 5:
@@ -112,7 +114,9 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
                 """),
                 {"deck_id": deck_id, "card_name": card}
             )
-
+        end_time = time.time()  # End timer
+        elapsed_ms = (end_time - start_time) * 1000
+        print(f"Completed in {elapsed_ms:.2f} ms")
         return {"message": "Deck created successfully."}
 
 @router.get("/{user_id}/decks")
@@ -129,6 +133,7 @@ def get_user_decks(user_id: int):
     Returns:
         List[str]: List of deck names owned by the user.
     """
+    start_time = time.time()  # Start timer
     with db.engine.begin() as connection:
         # Check user existence
         if not check_user_exists(user_id):
@@ -153,5 +158,7 @@ def get_user_decks(user_id: int):
                 status_code=400,
                 detail="User has too many decks (maximum allowed is 3)."
             )
-        
+        end_time = time.time()  # End timer
+        elapsed_ms = (end_time - start_time) * 1000
+        print(f"Completed in {elapsed_ms:.2f} ms")
         return deck_names
