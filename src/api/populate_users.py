@@ -14,14 +14,14 @@ def generate_a_bajillion_users():
     fake = Faker()
     Faker.seed(0)
 
-    with db.engine.begin() as conn:
-        all_cards = conn.execute(sqlalchemy.text("""
-            SELECT cards.id, cards.name, cards.price FROM cards
-            ORDER BY cards.price ASC;
-            """)).all()
-
-        print("creating fake users...")
-        for i in range(num_users):
+    print("creating fake users...")
+    for i in range(num_users):
+        with db.engine.begin() as conn:
+            all_cards = conn.execute(sqlalchemy.text("""
+                SELECT cards.id, cards.name, cards.price FROM cards
+                ORDER BY cards.price ASC;
+                """)).all()
+            
             #create 1 user
             username = fake.user_name()
             rand_coins = abs(int(np.random.normal(loc=100, scale=20)))
