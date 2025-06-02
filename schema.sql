@@ -23,6 +23,14 @@ ADD CONSTRAINT fk_deck_cards_card
 FOREIGN KEY (card_name) REFERENCES cards(name) ON DELETE CASCADE;
 
 
+-- Remove duplicates, keeping only one of each (deck_id, card_name)
+DELETE FROM deck_cards a
+USING deck_cards b
+WHERE a.ctid < b.ctid
+  AND a.deck_id = b.deck_id
+  AND a.card_name = b.card_name;
+
+
 -- Run these one by one:
 
 ALTER TABLE deck_cards DROP CONSTRAINT IF EXISTS deck_cards_pkey;
