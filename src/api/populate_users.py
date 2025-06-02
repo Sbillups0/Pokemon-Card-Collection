@@ -45,7 +45,7 @@ def generate_a_bajillion_users():
 
             #create 1 deck for each user if they have enough unique cards
             cards_owned = conn.execute(sqlalchemy.text("""
-                SELECT col.card_id, cards.card_name FROM collection AS col
+                SELECT col.card_id, cards.name FROM collection AS col
                 JOIN cards on cards.id = col.card_id
                 WHERE col.user_id = :user_id
                 """),
