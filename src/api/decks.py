@@ -74,6 +74,21 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
                 status_code=400,
                 detail=f"A deck named '{deck_name}' already exists for this user."
             )
+        
+        # Get all decks for the user
+        decks = connection.execute(
+            sqlalchemy.text("""
+                SELECT id, deck_name FROM decks
+                WHERE user_id = :user_id
+            """),
+            {"user_id": user_id}
+        ).mappings().all()
+
+        if len(decks) > 3:
+            raise HTTPException(
+                status_code=400,
+                detail=f"User has too many decks (maximum allowed is 3). Decks are {decks}"
+            )
 
         # Verify all cards exist in the card database
         placeholders = ", ".join([f":card_{i}" for i in range(len(cards))])
@@ -93,7 +108,7 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
                 detail=f"The following cards do not exist: {', '.join(invalid_cards)}."
             )
 
-        # Insert the new deck and retrieve its ID
+        # Insert the new deck
         deck_id_row = connection.execute(
             sqlalchemy.text("""
                 INSERT INTO decks (user_id, deck_name)
@@ -136,29 +151,83 @@ def get_user_decks(user_id: int):
     start_time = time.time()  # Start timer
     with db.engine.begin() as connection:
         # Check user existence
-        if not check_user_exists(user_id):
-            raise HTTPException(status_code=404, detail=f"User with ID {user_id} not found.")
+        check_user_exists(user_id)
 
-        deck_names = connection.execute(
+        # Get all decks for the user
+        decks = connection.execute(
             sqlalchemy.text("""
-                SELECT deck_name FROM decks
+                SELECT id, deck_name FROM decks
                 WHERE user_id = :user_id
             """),
             {"user_id": user_id}
-        ).scalars().all()
+        ).mappings().all()
 
-        if not deck_names:
+        if not decks:
             raise HTTPException(
                 status_code=404,
                 detail=f"No decks found for user with ID {user_id}."
             )
-        
-        if len(deck_names) > 3:
+
+        if len(decks) > 3:
             raise HTTPException(
                 status_code=400,
-                detail="User has too many decks (maximum allowed is 3)."
+                detail=f"User has too many decks (maximum allowed is 3). Decks are {decks}"
             )
+
+        # Get cards for each deck
+        result = {}
+        for deck in decks:
+            deck_id = deck["id"]
+            deck_name = deck["deck_name"]
+
+            cards = connection.execute(
+                sqlalchemy.text("""
+                    SELECT card_name FROM deck_cards
+                    WHERE deck_id = :deck_id
+                """),
+                {"deck_id": deck_id}
+            ).scalars().all()
+
+            result[deck_name] = cards
+
         end_time = time.time()  # End timer
         elapsed_ms = (end_time - start_time) * 1000
         print(f"Completed in {elapsed_ms:.2f} ms")
-        return deck_names
+
+        return result
+    
+@router.delete("/{user_id}/decks/{deck_name}")
+def delete_deck(user_id: int, deck_name: str):
+    """
+    Delete a specific deck for a user.
+    """
+    with db.engine.begin() as connection:
+        # Confirm deck exists
+        deck = connection.execute(
+            sqlalchemy.text("""
+                SELECT id FROM decks
+                WHERE user_id = :user_id AND deck_name = :deck_name
+            """),
+            {"user_id": user_id, "deck_name": deck_name}
+        ).first()
+
+        if not deck:
+            raise HTTPException(status_code=404, detail="Deck not found.")
+
+        # Delete the deck cards first (if you have a deck_cards table)
+        connection.execute(
+            sqlalchemy.text("""
+                DELETE FROM deck_cards WHERE deck_id = :deck_id
+            """),
+            {"deck_id": deck.id}
+        )
+
+        # Delete the deck itself
+        connection.execute(
+            sqlalchemy.text("""
+                DELETE FROM decks WHERE id = :deck_id
+            """),
+            {"deck_id": deck.id}
+        )
+
+    return {"message": f"Deck '{deck_name}' deleted successfully."}
