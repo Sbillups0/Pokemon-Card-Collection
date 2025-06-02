@@ -33,7 +33,7 @@ def generate_a_bajillion_users():
                 chosen_card = packs.weighted_random_choice(all_cards)
                 conn.execute(sqlalchemy.text("""
                 INSERT INTO collection (user_id, card_id, quantity) 
-                VALUES (:user, :card_id, 1)
+                VALUES (:user_id, :card_id, 1)
                 ON CONFLICT (user_id, card_id)
                 DO UPDATE SET quantity = quantity + 1;
                 """), {"user_id": user_id, "card_id": chosen_card})
