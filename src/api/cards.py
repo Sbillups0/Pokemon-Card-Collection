@@ -146,6 +146,19 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
         card_id = card.id
         card_price = card.price
 
+        # Check if card is in the user's display
+        card_in_display = conn.execute(sqlalchemy.text("""
+            SELECT 1 FROM display
+            WHERE user_id = :user_id AND card_id = :card_id
+        """), {"user_id": user_id, "card_id": card_id}).fetchone()
+        
+        if card_in_display:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot sell '{card_name}' because it is currently in your display. Remove it from the display before selling."
+            )
+
+    
         # Check if card is in any decks owned by user (by card_id)
         card_in_deck = conn.execute(sqlalchemy.text("""
             SELECT dc.id FROM deck_cards dc
