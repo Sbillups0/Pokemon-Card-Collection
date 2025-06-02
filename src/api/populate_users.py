@@ -82,7 +82,7 @@ def generate_a_bajillion_users():
                     display_card = random.choice(cards_owned)
                     conn.execute(sqlalchemy.text("""
                         INSERT INTO display (user_id, card_id) 
-                        VALUES (:user, :card_id);
+                        VALUES (:user_id, :card_id);
                         """), {"user_id": user_id, "card_id": display_card})
                     display_num -= 1
                 except sqlalchemy.exc.IntegrityError:
