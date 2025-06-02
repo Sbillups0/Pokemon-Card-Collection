@@ -7,6 +7,7 @@ import numpy as np
 from src.api import auth
 from src import database as db
 from src.api import packs
+import math
 
 def generate_a_bajillion_users():
     num_users = 100000
@@ -15,7 +16,7 @@ def generate_a_bajillion_users():
 
     with db.engine.begin() as conn:
         all_cards = conn.execute(sqlalchemy.text("""
-            SELECT cards.name, cards.price FROM cards
+            SELECT cards.id, cards.name, cards.price FROM cards
             ORDER BY cards.price ASC;
             """)).all()
 
@@ -30,7 +31,11 @@ def generate_a_bajillion_users():
             
             #create 10 cards in the collection of the new user
             for i in range(10):
-                chosen_card = packs.weighted_random_choice(all_cards)
+                max_price = max(price for _, _, price in all_cards)
+                weights = [math.sqrt(max_price - price + 1) for _, _, price in all_cards]
+                all_card_ids = [id for id, _, _ in all_cards]
+                chosen_card = random.choices(all_card_ids, weights=weights, k=1)[0]
+
                 conn.execute(sqlalchemy.text("""
                 INSERT INTO collection (user_id, card_id, quantity) 
                 VALUES (:user_id, :card_id, 1)
