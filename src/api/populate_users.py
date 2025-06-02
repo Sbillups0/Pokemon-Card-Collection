@@ -35,7 +35,7 @@ def generate_a_bajillion_users():
                 INSERT INTO collection (user_id, card_id, quantity) 
                 VALUES (:user_id, :card_id, 1)
                 ON CONFLICT (user_id, card_id)
-                DO UPDATE SET quantity = quantity + 1;
+                DO UPDATE SET quantity = collection.quantity + 1;
                 """), {"user_id": user_id, "card_id": chosen_card})
 
             #create 1 deck for each user if they have enough unique cards
@@ -52,7 +52,7 @@ def generate_a_bajillion_users():
                 deck_name = '_'.join(fake.words())
                 deck_id = conn.execute(sqlalchemy.text("""
                 INSERT INTO decks (user_id, deck_name) VALUES (:user_id, :deck_name) RETURNING id;
-                """), {"user_id": user_id, "deck_name": rand_coins}).scalar_one()
+                """), {"user_id": user_id, "deck_name": deck_name}).scalar_one()
                 
                 for card_name in rand_deck:
                     conn.execute(sqlalchemy.text("""
