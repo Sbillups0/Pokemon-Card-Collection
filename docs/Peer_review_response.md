@@ -126,6 +126,7 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 - The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
+- Didn’t seem like there was a schema for the display table in schema.sql and the alembic revisions so make sure to add that somewhere (But from the code for the endpoint I think you would just need to have a user_id and card_id column and the primary key would be the tuple of both of those values)
 
 ### display.py has been updated for the above review comments
 
@@ -266,13 +267,23 @@ but id is never used. You can either use id for something later, or you don't ne
 - The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
+- It would be nice if there was a check for if they already have the max amount of decks before creating a new deck instead of letting the creation of the deck go through and raising an error when trying to view the decks
+- I didn't see any way to delete decks or rename them if I wanted to. I think that it would be helpful to have some management of the decks you create.
+- In decks.py, the get_user_decks endpoint incorrectly returns a 404 error with message "User has too many decks (max 3)" when trying to view decks if a user has more than 3 decks. As a user I should be able to see all my decks, and not get an error unless I have a very large number of decks.
+
 
 ### decks.py has been updated for the above review comments
+### Deck Comments Considered - additional details.
+
+- Fixed check_user_exists(user_id)
+- Max user decks has a limit of 3 decks, so users don't abuse the power of creating anymore. I returned the frist three decks with a message if any more is made, an error is created, and you can delete the extra decks that were made.
+- Delete Decks is a new feature added to help delete the extra decks if any were made.
+- I added an error if the user has many decks for creating a deck and getting the user decks. Reveals what decks there are in the message.
 
 ### Review comments not considered
 
 - In create deck I was confused at first on how to pass in the five card names, it might be helpful if instead of taking in a list of strings you took in exactly five strings which would also help later on since you check that there is exactly five cards passed
-  if we change the list of strings to individual strings, we will lose the json format and also in the future, if we want to increase the number of cards from 5 to a different number, we need to revert back the change.
+    if we change the list of strings to individual strings, we will lose the json format and also in the future, if we want to increase the number of cards from 5 to a different number, we need to revert back the change.
 
 - In packs.py
   User has 10 packs
@@ -284,60 +295,12 @@ but id is never used. You can either use id for something later, or you don't ne
 
          This is considered as part of concurrency exercise.
 
-## Deck Review comments
+- I think that each card should have some type of quality that contributes to its fighting skills. You can add how much damage they do or what kind of attacking role they have. This would help distinguish between cards and help build a more curated deck. It would also make sense to have the cards that cost more be better at battling.
+    This is a good ask but it is a complex sequence
 
-Deck:
 
-It would be nice if there was a check for if they already have the max amount of decks before creating a new deck instead of letting the creation of the deck go through and raising an error when trying to view the decks
 
-For deck_cards you wouldn’t need an id column -> the primary key would just be the (deck_id, card_name) tuple
 
-It would be helpful to check for combinations of cards in a deck for create_deck, you could create a new table that stores the different card combinations a user has in a deck (Where you insert 5 card id/names and it returns a deck id for the card combination (instead of just having a deck id returned on the deck name and user id combination))(You could always have the card insertion order be in ascending card id order/alphabetical order of card names so that if they’re trying to insert the same combination of cards you catch that)
 
-I think that each card should have some type of quality that contributes to its fighting skills. You can add how much damage they do or what kind of attacking role they have. This would help distinguish between cards and help build a more curated deck. It would also make sense to have the cards that cost more be better at battling.
 
-I didn't see any way to delete decks or rename them if I wanted to. I think that it would be helpful to have some management of the decks you create.
 
-Can't modify existing decks
-No way to delete decks
-Can't rename decks
-Can't see cards in a deck
-The catalog endpoint should give us a way to see what cards are available in the pack and preferably the rarity of pulling a copy of the cards.
-
-In decks.py, the get_user_decks endpoint incorrectly returns a 404 error with message "User has too many decks (max 3)" when trying to view decks if a user has more than 3 decks. As a user I should be able to see all my decks, and not get an error unless I have a very large number of decks.
-
-## Deck Comments Considered
-
-- Fixed check_user_exists(user_id)
-- Max user decks has a limit of 3 decks, so users don't abuse the power of creating anymore. I returned the frist three decks with a message if any more is made, an error is created, and you can delete the extra decks that were made.
-- Delete Decks is a new feature added to help delete the extra decks if any were made.
-- I added an error if the user has many decks for creating a deck and getting the user decks. Reveals what decks there are in the message.
-
-Display:
-Didn’t seem like there was a schema for the display table in schema.sql and the alembic revisions so make sure to add that somewhere (But from the code for the endpoint I think you would just need to have a user_id and card_id column and the primary key would be the tuple of both of those values)
-
-Cards lack attributes that would make collecting more interesting:
-
-No rarity system
-No indication of card value besides price
-No special attributes or abilities
-No special editions (holographic, full art, etc.)
-Could be a cool way to give rare versions of cards additional value too
-The battle system is still in work, but as of right now it's lacking:
-
-Cards don't have battle statistics
-No way to see potential matchups
-No ranking system
-No battle history
-Pack opening could be more engaging:
-
-No indication of rare card probability
-No preview of possible cards in each pack
-No history of past pack openings
-No celebration or special indication when getting rare cards
-Deck management is very limited:
-
-User profile functionality is very limited:
-No statistics on cards owned
-No history of transactions
-No way to track progress (Percent of cards from pack owned)
