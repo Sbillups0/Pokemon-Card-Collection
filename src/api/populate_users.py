@@ -77,9 +77,11 @@ def generate_a_bajillion_users():
             else:
                 display_num = np.random.randint(0, 5)
             
+            cards_owned_ids = [card.card_id for card in cards_owned]
+            
             while (display_num > 0):
                 try:
-                    display_card = random.choice(cards_owned)
+                    display_card = random.choice(cards_owned_ids)
                     conn.execute(sqlalchemy.text("""
                         INSERT INTO display (user_id, card_id) 
                         VALUES (:user_id, :card_id);
