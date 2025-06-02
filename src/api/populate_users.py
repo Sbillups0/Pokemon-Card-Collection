@@ -51,7 +51,7 @@ def generate_a_bajillion_users():
                 """),
                 {"user_id": user_id}).all()
             
-            card_names = [card.card_name for card in cards_owned]
+            card_names = [card.name for card in cards_owned]
             if (len(cards_owned) >= 5):
                 rand_deck = random.choices(card_names, k=5)
                 deck_name = '_'.join(fake.words())
