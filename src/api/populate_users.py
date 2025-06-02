@@ -79,14 +79,11 @@ def generate_a_bajillion_users():
             
             cards_owned_ids = [card.card_id for card in cards_owned]
             
-            while (display_num > 0):
-                try:
-                    display_card = random.choice(cards_owned_ids)
-                    conn.execute(sqlalchemy.text("""
-                        INSERT INTO display (user_id, card_id) 
-                        VALUES (:user_id, :card_id);
-                        """), {"user_id": user_id, "card_id": display_card})
-                    display_num -= 1
-                except sqlalchemy.exc.IntegrityError:
-                    continue
+            for i in range(0, display_num):
+                display_card = cards_owned_ids[i]
+                conn.execute(sqlalchemy.text("""
+                    INSERT INTO display (user_id, card_id) 
+                    VALUES (:user_id, :card_id);
+                    """), {"user_id": user_id, "card_id": display_card})
+                display_num -= 1
     
