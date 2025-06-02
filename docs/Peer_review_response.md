@@ -68,10 +68,13 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 - The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
-
-
-
-
+- The collection endpoint could use more filtering options. Currently, we can only filter by type, but it would be useful to:
+       Filter by what pack they are pulled from 
+       Filter by card name
+       Filter by price
+       Filter by the quantity of the card I have
+  - Of these, the most significant are sorting by pack and quantity (to know which you can sell), so we decided to implement that change. (Filter by card name -> Can already search by card name from another endpoint; Price -> Can view price from any get statement)
+  
 
 
 
@@ -79,15 +82,6 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 
 
 ### collection.py has been updated for the above review comments 
-
-### Review comments not considered
-- The collection endpoint could use more filtering options. Currently, we can only filter by type, but it would be useful to:
-       Filter by what pack they are pulled from
-       Filter by card name
-       Filter by price
-       Filter by the quantity of the card I have
-         These are good asks. We are currently allowing the filter by type. Some of these filters are complex to implement.
-
 
 ## cards.py
 
