@@ -34,10 +34,18 @@ def upgrade() -> None:
         sa.Column("card_name", sa.Text, nullable=False),
         sa.ForeignKeyConstraint(["deck_id"], ["decks.id"], name="fk_deck_id", ondelete="CASCADE"),
     )
+    op.create_table(
+        "display",
+        sa.Column("user_id", sa.Integer, primary_key=True),
+        sa.Column("card_id", sa.Integer, primary_key=True),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_user_id_display", ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["card_id"], ["cards.id"], name="fk_card_id_display", ondelete="CASCADE"),
+    )
 
 
 
 def downgrade() -> None:
     op.drop_table("deck_cards")
     op.drop_table("decks")
+    op.drop_table("display")
     pass
