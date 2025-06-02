@@ -72,6 +72,7 @@ def generate_a_bajillion_users():
             """), {"user_id": user_id, "pack_id": rand_pack})
 
             #insert 0-4 cards into the user's display
+            display_num = 1
             if (len(cards_owned) < 5):
                 display_num = np.random.randint(0, len(cards_owned))
             else:
