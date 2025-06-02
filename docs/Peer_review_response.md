@@ -3,6 +3,7 @@
 ## `battle.py`
 
 ### Review Comment
+
 - `.one()` can raise an exception if no result is found before checking for deck existence.
 - **Suggestion**: Use `.fetchone()` instead and check if the result is `None` before accessing the value.
 - Were the battle endpoints supposed to be implemented? I saw that you had a battle.py, but I was not able to use it in the testing. I think that using the battle endpoints would help improve the experience.
@@ -11,21 +12,17 @@
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
 
-
-
-
-
-
 ### battle.py has been update for the above review comment
 
 ### Review comments not considered
-- Not sure if this is intentional or not but I'm not able to view the battle and display endpoints on the render so I couldn’t test those endpoints
-         The endpoint is available and it is visible in render API Docs too.
 
+- Not sure if this is intentional or not but I'm not able to view the battle and display endpoints on the render so I couldn’t test those endpoints
+  The endpoint is available and it is visible in render API Docs too.
 
 ## catalog.py
 
 ### Review comments
+
 - In catalog.py, I would suggest in create_catalog to add either a warning log or raise an exception if the catalog returns empty.
 - In create_catalog, I would suggest adding an ORDER BY for this query: SELECT name, price FROM packs to return the packs that are expected with that call and in an order that is pre-determined.
 - If you only plan on allowing users to purchase packs and nothing else, you could simplify the endpoint url to just /catalog or if you will implement other kinds of purchases then make sure to rename the url so it is /catalog/packs instead of /packs/catalogs (By having packs before catalog it implies that it is a pack specific endpoint but it’s a catalog related endpoint)
@@ -34,18 +31,13 @@
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
 
-
-
-
-
-
-### catalog.py has been updated for the above review comments 
+### catalog.py has been updated for the above review comments
 
 ### Review comments not considered
+
 - For get catalog, when different packs are added, I don’t see the need to limit the amount of packs you’re showing that are available since it just would return them in some arbitrary order and there is no way to check if a user would be purchasing a pack that was actually on the catalog (If you wanted to limit the amount of packs shown, I’d recommend adding an active attribute to each pack which would determine if you offer it on the catalog and also if a user can purchase it)
 
 Currently 6 packs are shown are the top 6 packs with maximum price. Even though there are other packs available, we are only showing the Top 6 packs based on price. Users have visibility to only those 6 packs. If we don't limit it will be a huge number of packs.
-       
 
 ## collection.py
 
@@ -69,27 +61,23 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
 - The collection endpoint could use more filtering options. Currently, we can only filter by type, but it would be useful to:
-       Filter by what pack they are pulled from 
-       Filter by card name
-       Filter by price
-       Filter by the quantity of the card I have
+  Filter by what pack they are pulled from
+  Filter by card name
+  Filter by price
+  Filter by the quantity of the card I have
   - Of these, the most significant are sorting by pack and quantity (to know which you can sell), so we decided to implement that change. (Filter by card name -> Can already search by card name from another endpoint; Price -> Can view price from any get statement)
-  
 
-
-
-
-
-
-### collection.py has been updated for the above review comments 
+### collection.py has been updated for the above review comments
 
 ## cards.py
 
 ### Review comments
+
 - In cards.py, in the sell_card_by_name function, instead of using the design of if owned.quantity == req.quantity: DELETE else: UPDATE, I would combine it into one query of UPDATE... RETURNING, which seems to make it clearer and more readable.
 - There is duplicated code in cards.py and packs.py. This can be rewritten as a function that both can call individually.
 
-     In cards.py
+  In cards.py
+
   ```
     def check_user_exists(user_id: int):
         with db.engine.connect() as conn:
@@ -100,7 +88,7 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
             if not result:
                 raise HTTPException(status_code=404, detail="User not found")
   ```
-  
+
 - Also move up where you check if the user exists or not in sell by card name before checking their quantity; The not enough cards exception might be caused by the user not existing/bad input
 - In cards.py, the sell_card_by_name endpoint allows selling cards that are currently in decks. This could lead to invalid decks where users have decks containing cards they no longer own. The endpoint should either prevent selling cards that are in decks or remove the cards from decks when sold.
 - In sell by card name, it might be helpful to tell the user how many of that card they own in the exception itself since they can’t see the printed outputs
@@ -111,15 +99,10 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 - The error messages across endpoints are inconsistent and not very detailed.
 - Invalid card names should specify what valid options are or specify things like the name to match the databases capitalization
 
-
-
-
-
-
-
-### cards.py has been updated for the above review comments 
+### cards.py has been updated for the above review comments
 
 ### Review comments not considered
+
 - Along similar lines in cards.py] rename the endpoint for sell_card_by_name from /users/{user_id}/sell/{card_name}to /sell/{user_id}/{card_name}
 
   This will not be RESTful. We are grouping all actions that are user centric under users. Changing this as per review comments will move away from this understanding
@@ -129,47 +112,43 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
   All transaction are performed using db.engine.begin(). This ensures that whenever a database transaction is started it happens in the same transaction. The entire sell_card_by_name is one in one single transaction.
 
 - Selling one card at a time was time-consuming, especially if I opened multiple packs. I think that having an easy function to sell duplicate cards or having some kind of bulk selling would be useful.
-         This is a good ask and it is not addressed as it is a complex sequence
+  This is a good ask and it is not addressed as it is a complex sequence
 
 - I would add rarities to the cards or show probabilities of pulling certain cards to add an element of excitement when getting rarer cards.
-         This is a good ask. It is a complex flow and it was considered as part of complex flow exercise.
-
-
+  This is a good ask. It is a complex flow and it was considered as part of complex flow exercise.
 
 ## display.py
 
 ### Review comments
+
 - In display.py, in the first query, you should also filter by user_id, and use this: WHERE ca.name = :card_name AND co.user_id = :user_id. This makes it so that each user can only get their own collection.
 - While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
 - The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
 
-
-
-
-
-
-### display.py has been updated for the above review comments 
+### display.py has been updated for the above review comments
 
 ### Review comments not considered
+
 - In display.py, there's no validation to prevent displaying the same card multiple times. A user could add the same card to their display multiple times. This doesn't make sense from a user interface perspective. The endpoint should check if a card is already being displayed before adding it again.
 - In the case where a user’s display is both full and they’re adding a card that is already in display it would be more useful to know that that card is already in the display than that their display is full so consider switching the ordering of the http exceptions
 
-     This is already taken care in the below code segment
-  
-    ```
-    if len(in_collection) == 0:
-        raise HTTPException(status_code=404, detail="Card not in user's collection")
-    elif len(current_display) == 4:
-        raise HTTPException(status_code=403, detail="User's display is full")
-    elif card_name in current_display:
-        raise HTTPException(status_code=403, detail="Card is already in user's display")
-    ```
+  This is already taken care in the below code segment
+
+  ```
+  if len(in_collection) == 0:
+      raise HTTPException(status_code=404, detail="Card not in user's collection")
+  elif len(current_display) == 4:
+      raise HTTPException(status_code=403, detail="User's display is full")
+  elif card_name in current_display:
+      raise HTTPException(status_code=403, detail="Card is already in user's display")
+  ```
 
 ## packs.py
 
 ### Review comments
+
 - Packs.py: In the queries, you are using lists of dictionaries: [{"pack_name": pack_name}] and [{"user_id": user_id, "card_name": chosen_card}], the lists aren't needed, you can just make them plain dictionaries; {"pack_name": pack_name} and {"user_id": user_id, "card_name": chosen_card}.
 - Packs.py: If owned packs is None, you should raise an exception as well. Change this: if owned_packs < pack_quantity: raise HTTPException(...) to if owned_packs is None or owned_packs < pack_quantity: raise HTTPException(...)
 - Packs.py: I would switch your for loop structure. You currently have: for i in range(pack_quantity): with db.engine.begin() as connection. I would switch it to: with db.engine.begin() as connection: for i in range(pack_quantity). This change in order would have the for loop inside the single db connection, making it so that a new connection isn't opened every iteration of the for loop.
@@ -179,16 +158,18 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 - In purchase packs you should check if the user exists earlier in the transaction (before getting pack data) so if the user doesn’t exist you’re not doing other queries from the database
 - This isn't too important but in packs.py the parameter dictionaries are wrapped in lists which is unecessary since we can only open one type of pack at a time.
 - The below code
- ```
-def check_user_exists(user_id: int):
-    with db.engine.connect() as conn:
-        user = conn.execute(
-            sqlalchemy.text("SELECT id FROM users WHERE id = :id"),
-            {"id": user_id}
-        ).fetchone()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+
 ```
+def check_user_exists(user_id: int):
+   with db.engine.connect() as conn:
+       user = conn.execute(
+           sqlalchemy.text("SELECT id FROM users WHERE id = :id"),
+           {"id": user_id}
+       ).fetchone()
+       if not user:
+           raise HTTPException(status_code=404, detail="User not found")
+```
+
 In packs.py you have a for loop with the database connection inside of it. If I'm not mistaken this is much worse than having the for loop inside the database connection block.
 
 ```
@@ -196,8 +177,10 @@ for i in range(pack_quantity):
     with db.engine.begin() as connection:
         packs = connection.execute(...)
 ```
+
 There is a possible race condition in the open_packs function. I believe the problem can occur in the following scenario:
 Two requests come in at about the same time.
+
 - I would double check the code for check_pack_exists because when I tried opening a pack that was non existent by not capitalizing the pack name it resulted in a 500 internal server error instead of raising an exception (nothing stands out from this code so I’m not sure why the exception isn’t being raised) (The code works properly for purchasing a pack, so maybe you might just need to have that piece of code in the function for check_pack_exists)
 - Consider renaming the open packs endpoint from "/users/{user_id}/open_packs/{pack_name}/{pack_quantity}" to /open_packs/{user_id}/{pack_name}/{pack_quantity} (This way it’s clear that this packs.py endpoint is for when a pack is opened and the necessary information are the user id, pack name, and quantity)
 - Also rename the purchase packs endpoint to be /purchase_packs/{user_id}/{pack_name}/{pack_quantity} for same reasoning as above and to maintain consistency
@@ -205,7 +188,7 @@ Two requests come in at about the same time.
 - When buying packs -> "Not enough coins" could include current balance
 - The first I noticed after registering was that I didn't know how many coins I had. I tried to buy Crown Zenith pack and was told I didn't have enough coins. I would recommend either adding an endpoint that returns user information. It could be an endpoint on its own or be returned with other information. At the very least include it in the message saying that we can't afford a pack.
 - packs/users/{user_id}/purchase_packs/{pack_name}/{pack_quantity}
-There is no input validation for the quantity of packs bought. If I pass in negative number of packs it removes that many of the pack from my account, and credits me the coin price. This can work fine when used like returning an item (Like if I have 2 surging sparks packs and purchase -2 of them they get removed from my inventory and I get 2 * pack price back. Everything is the same state as before the initial purchase of the packs). However, it doesn't check how many of that pack I have, so I can input any size negative number and get essentially infinite coins. So I can purchase -10000 Crown Zenith and get 2000000 coins credited to my account. It seems like when I do this my pack count for that pack type goes negative as well. I can still exploit this by going into "pack debt" for one pack type and then opening unlimited packs of the other types.
+  There is no input validation for the quantity of packs bought. If I pass in negative number of packs it removes that many of the pack from my account, and credits me the coin price. This can work fine when used like returning an item (Like if I have 2 surging sparks packs and purchase -2 of them they get removed from my inventory and I get 2 \* pack price back. Everything is the same state as before the initial purchase of the packs). However, it doesn't check how many of that pack I have, so I can input any size negative number and get essentially infinite coins. So I can purchase -10000 Crown Zenith and get 2000000 coins credited to my account. It seems like when I do this my pack count for that pack type goes negative as well. I can still exploit this by going into "pack debt" for one pack type and then opening unlimited packs of the other types.
 - Make sure to be consistent with the naming of the endpoints (ex. If you’re going to add a /user before every /{user_id} (Decks and packs have the endpoint urls implemented as decks/users/{user_id}/… and packs/users/{user_id}/… while collection and inventory just only have user_id (ex. /inventory/{user_id}/audit))
 - A similar problem happens for /users/{user_id}/open_packs/{pack_name}/{pack_quantity} where I can "open" a negative number of packs and they get added to my inventory. This circumnavigates the entire coin system so the exploit above isn't even required.
 - While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
@@ -213,49 +196,38 @@ There is no input validation for the quantity of packs bought. If I pass in nega
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
 
-
-
-
-
-
-
-
 ### packs.py has been updated for the above review comments
 
 ### Review comments not considered
+
 - Open Packs: Once I open a pack, it was difficult to know what cards I pulled later unless I go to my collection. A log of recent pack openings could be helpful.
 - It would be cool to see potential cards that can be pulled from each pack. It could display what cards are there and if there are cards that are more rare or less likely to be pulled.
 - If you want to add additional endpoints, I think that a profile that returns unopened packs, total cards, the amount of coins, and your card deck would be useful as well.
 
-         These are good asks. We are currently showing the pack openings as the reponse of Open Pack. The result of open pack is also stored in collections. Additional asks - potential cards and profile are complex sequence. 
-
+         These are good asks. We are currently showing the pack openings as the reponse of Open Pack. The result of open pack is also stored in collections. Additional asks - potential cards and profile are complex sequence.
 
 ## user.py
 
 ### Review comments
+
 - In register user on line 31 the column for username is capitalizes as ‘Username’ which might be causing problems when registering a user that already exists. When trying to register with a username that exists a 500 internal server error occurs instead of raising the http exception that the username exists
 - Simplify the endpoint url in users.py from users/users/register to just users/register
 - Some use /users/{user_id}/action
-Others use /action/{user_id}
-Some include unnecessary words like "get"
-Inconsistent use of plurals
+  Others use /action/{user_id}
+  Some include unnecessary words like "get"
+  Inconsistent use of plurals
 - There is no way to see how many coins I have
 - While I don't think it's a pressing matter, the endpoint naming isn't consistent across the API:
 - The longer files are documented in a clear, concise manner, but the shorter ones could use a little more documentation. For instance battle.py, collection.py, display.py could use a small documentation touch up.
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
 
-
-
-
-
-
-
 ### user.py has been updated for the above review comments
 
 ## inventory.py
 
 ### Review comments
+
 - I think that the Get Inventory endpoint should also return how many coins I have. It was hard to know how many coins I had when testing locally.
 - In get_inventory it’s probably best if you check if the user exists or not (When I passed in a larger user_id (30) because my user_id was 12 it just returned an empty catalog; if the user doesn’t exist it would be nice to return a message saying that the user doesn’t exist)
 - The Get Inventory endpoint should return the user's coin balance. Currently, there's no easy way to check how many coins you have, which makes it difficult to plan purchases or know when you can afford packs. As of right now I just have to trial and error my way through it.
@@ -264,22 +236,18 @@ Inconsistent use of plurals
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
 
-
-
-
-
-
 ### inventory.py has been updated for the above review comments
-
 
 ## decks.py
 
 ### Review comments
-- In decks.py, you raise an exception like this: if not check_user_exists(user_id):
-raise HTTPException(status_code=404, detail="User not found")
-This is redundant because check_user_exists already raises an exception on its own, so it can be called just like this: check_user_exists(user_id)
 
-- Also in create_deck, you have this query: 
+- In decks.py, you raise an exception like this: if not check_user_exists(user_id):
+  raise HTTPException(status_code=404, detail="User not found")
+  This is redundant because check_user_exists already raises an exception on its own, so it can be called just like this: check_user_exists(user_id)
+
+- Also in create_deck, you have this query:
+
 ```
 connection.execute(
 sqlalchemy.text("""
@@ -288,6 +256,7 @@ VALUES (:deck_id, :card_name)
 RETURNING id
 """),
 ```
+
 but id is never used. You can either use id for something later, or you don't need to return it.
 
 - In creating deck when you check if a deck with that name exists make sure your exception specifies that the deck name already exists since it’s not necessarily that combination of cards
@@ -298,60 +267,24 @@ but id is never used. You can either use id for something later, or you don't ne
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
 
-
-
-
-
-
 ### decks.py has been updated for the above review comments
 
 ### Review comments not considered
+
 - In create deck I was confused at first on how to pass in the five card names, it might be helpful if instead of taking in a list of strings you took in exactly five strings which would also help later on since you check that there is exactly five cards passed
-   if we change the list of strings to individual strings, we will lose the json format and also in the future, if we want to increase the number of cards from 5 to a different number, we need to revert back the change.
+  if we change the list of strings to individual strings, we will lose the json format and also in the future, if we want to increase the number of cards from 5 to a different number, we need to revert back the change.
 
 - In packs.py
-User has 10 packs
-Request A checks quantity -> sees 10 packs, which is enough for 7
-Request B checks quantity -> also sees 10 packs, which is enough for 7
-Request A updates quantity -> 10 - 7 = 3 packs remaining
-Request B updates quantity -> 3 - 7 = -4 packs
-Not all database transactions are atomic. For example, sell_card_by_name in cards.py checks collection, updates or deletes from collection, and then updates the user's coins all in different transactions when they should be within the same transaction. That way if one fails they all get rolled back instead of having an inconsistent change of state.
+  User has 10 packs
+  Request A checks quantity -> sees 10 packs, which is enough for 7
+  Request B checks quantity -> also sees 10 packs, which is enough for 7
+  Request A updates quantity -> 10 - 7 = 3 packs remaining
+  Request B updates quantity -> 3 - 7 = -4 packs
+  Not all database transactions are atomic. For example, sell_card_by_name in cards.py checks collection, updates or deletes from collection, and then updates the user's coins all in different transactions when they should be within the same transaction. That way if one fails they all get rolled back instead of having an inconsistent change of state.
 
-       This is considered as part of concurrency exercise.
+         This is considered as part of concurrency exercise.
 
-  
-
-============================================================================================================================================================================================
-
-
-
-- 
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+## Deck Review comments
 
 Deck:
 
@@ -373,17 +306,15 @@ The catalog endpoint should give us a way to see what cards are available in the
 
 In decks.py, the get_user_decks endpoint incorrectly returns a 404 error with message "User has too many decks (max 3)" when trying to view decks if a user has more than 3 decks. As a user I should be able to see all my decks, and not get an error unless I have a very large number of decks.
 
+## Deck Comments Considered
 
-
+- Fixed check_user_exists(user_id)
+- Max user decks has a limit of 3 decks, so users don't abuse the power of creating anymore. I returned the frist three decks with a message if any more is made, an error is created, and you can delete the extra decks that were made.
+- Delete Decks is a new feature added to help delete the extra decks if any were made.
+- I added an error if the user has many decks for creating a deck and getting the user decks. Reveals what decks there are in the message.
 
 Display:
 Didn’t seem like there was a schema for the display table in schema.sql and the alembic revisions so make sure to add that somewhere (But from the code for the endpoint I think you would just need to have a user_id and card_id column and the primary key would be the tuple of both of those values)
-
-
-
-
-
-
 
 Cards lack attributes that would make collecting more interesting:
 
@@ -406,26 +337,7 @@ No history of past pack openings
 No celebration or special indication when getting rare cards
 Deck management is very limited:
 
-
-
 User profile functionality is very limited:
 No statistics on cards owned
 No history of transactions
 No way to track progress (Percent of cards from pack owned)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
