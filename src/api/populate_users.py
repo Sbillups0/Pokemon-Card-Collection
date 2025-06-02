@@ -9,13 +9,12 @@ from src.api import auth
 from src import database as db
 from src.api import packs
 import math
+import string
 
 def generate_a_bajillion_users():
     num_users = 100000
     fake = Faker()
     Faker.seed(0)
-
-    username_list = []
 
     print("creating fake users...")
     for i in range(num_users):
@@ -26,14 +25,13 @@ def generate_a_bajillion_users():
                 """)).all()
             
             #create 1 user
-            username = fake.user_name()
-            while username in username_list:
-                username = fake.user_name()
+            base_name = fake.user_name()
+            extra_uniqueness = ''.join(random.choices(string.ascii_letters + string.digits + "!@#$%^&*()-_=+[]{}", k=random.randint(2, 7)))
+            username = base_name + extra_uniqueness
             rand_coins = abs(int(np.random.normal(loc=100, scale=20)))
             user_id = conn.execute(sqlalchemy.text("""
             INSERT INTO users (username, coins) VALUES (:username, :coins) RETURNING id;
             """), {"username": username, "coins": rand_coins}).scalar_one()
-            username_list.append(username)
             
             #create 10 cards in the collection of the new user
             for i in range(10):
