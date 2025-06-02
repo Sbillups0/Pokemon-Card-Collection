@@ -98,7 +98,7 @@ def get_total_collection_value(user_id: int):
     print(f"Completed in {elapsed_ms:.2f} ms")
     return {"user_id": user_id, "total_value": result or 0.0}
 
-@router.get("/{user_id}/{type}", tags=["collection"], response_model=CollectionResponse)
+@router.get("/type/{user_id}/{type}", tags=["collection"], response_model=CollectionResponse)
 def get_collection_by_type(user_id: int, type: str):
     """
     Retrieve all cards of a specific type from a user's collection.
@@ -187,3 +187,86 @@ def get_full_collection(user_id: int):
     print(f"Completed in {elapsed_ms:.2f} ms")
     return CollectionResponse(Cards=collection, TotalValue=total_value)
 
+@router.get("quantity/{user_id}", tags=["collection"], response_model=CollectionResponse)
+def get_full_collection_by_quantity(user_id: int):
+    """
+    Retrieve the full card collection for a user.
+
+    Args:
+        user_id (int): The ID of the user.
+
+    Raises:
+        HTTPException 404: If the user does not exist.
+
+    Returns:
+        CollectionResponse: Contains the full list of cards and their total value.
+    """
+    check_user_exists(user_id)
+    collection = []
+    total_value = 0.0
+
+    with db.engine.begin() as connection:
+        cards = connection.execute(
+            sqlalchemy.text("""
+                SELECT c.name, c.type, c.price, col.quantity FROM collection AS col
+                LEFT JOIN cards AS c ON col.card_id = c.id
+                WHERE col.user_id = :user_id
+                ORDER BY quantity desc, c.type
+            """),
+            {"user_id": user_id}
+        ).all()
+
+        for name, ctype, price, quantity in cards:
+            collection.append(CollectionInfo(Card=Card(name=name, type=ctype, price=price), Quantity=quantity))
+            total_value += price * quantity
+
+    return CollectionResponse(Cards=collection, TotalValue=total_value)
+
+@router.get("/pack/{pack}/{user_id}", tags=["collection"], response_model=CollectionResponse)
+def get_collection_by_pack(user_id: int, pack: str):
+    """
+    Retrieve all cards of a specific type from a user's collection.
+
+    Args:
+        user_id (int): The ID of the user.
+        pack (str): The type of pack to filter by.
+
+    Raises:
+        HTTPException 400: If the pack type is invalid.
+        HTTPException 404: If the user does not exist.
+
+    Returns:
+        CollectionResponse: Contains a list of cards and total value of the selected type.
+    """
+    check_user_exists(user_id)
+    total_value = 0.0
+    collection = []
+
+    with db.engine.begin() as connection:
+        # Fetch all valid cards from the specified pack
+        valid_packs = set(connection.execute(
+            sqlalchemy.text("SELECT DISTINCT name FROM packs")
+        ).scalars().all())
+        print(f"{valid_packs}")
+        if pack not in valid_packs:
+            raise HTTPException(
+                status_code=401,
+                detail=f"Invalid pack '{pack}'. Valid packs are: {', '.join(sorted(valid_packs))}."
+            )
+        
+        # Fetch cards from the user's collection that match the specified pack
+        cards = connection.execute(
+            sqlalchemy.text("""
+                SELECT c.name, c.type, c.price, col.quantity FROM collection AS col
+                LEFT JOIN cards AS c ON col.card_id = c.id
+                INNER JOIN packs AS p ON c.pack_id = p.id
+                WHERE col.user_id = :user_id AND LOWER(p.name) = LOWER(:pack)
+            """),
+            {"user_id": user_id, "pack": pack}
+        ).all()
+
+        for name, type, price, quantity in cards:
+            collection.append(CollectionInfo(Card=Card(name=name, type=type, price=price), Quantity=quantity))
+            total_value += price * quantity
+
+    return CollectionResponse(Cards=collection, TotalValue=total_value)
