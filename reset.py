@@ -8,6 +8,7 @@ from src import database as db
 with db.engine.begin() as connection:
     connection.execute(sqlalchemy.text("DELETE FROM deck_cards"))
     connection.execute(sqlalchemy.text("DELETE FROM decks"))
+    connection.execute(sqlalchemy.text("DELETE FROM display"))
     connection.execute(sqlalchemy.text("DELETE FROM collection"))
     connection.execute(sqlalchemy.text("DELETE FROM inventory"))
     connection.execute(sqlalchemy.text("DELETE FROM users"))
