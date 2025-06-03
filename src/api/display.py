@@ -122,7 +122,7 @@ def remove_from_display(user_id: int, card_name: str):
         card_id_obj = connection.execute(
             sqlalchemy.text("SELECT id FROM cards WHERE name = :card_name"),
             {"card_name": card_name}
-        ).fetchone()
+        ).scalar()
 
         if card_id_obj is None:
             raise HTTPException(
