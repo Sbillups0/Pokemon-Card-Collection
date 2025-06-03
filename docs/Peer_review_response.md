@@ -113,9 +113,11 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
   All transaction are performed using db.engine.begin(). This ensures that whenever a database transaction is started it happens in the same transaction. The entire sell_card_by_name is one in one single transaction.
 
 - Selling one card at a time was time-consuming, especially if I opened multiple packs. I think that having an easy function to sell duplicate cards or having some kind of bulk selling would be useful.
+
   This is a good ask and it is not addressed as it is a complex sequence
 
 - I would add rarities to the cards or show probabilities of pulling certain cards to add an element of excitement when getting rarer cards.
+
   This is a good ask. It is a complex flow and it was considered as part of complex flow exercise.
 
 ## display.py
