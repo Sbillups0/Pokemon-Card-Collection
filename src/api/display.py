@@ -16,7 +16,7 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
-@router.post("/{user_id}/{card_name}", tags=["display"], status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/{user_id}/display/add/{card_name}", tags=["display"], status_code=status.HTTP_204_NO_CONTENT)
 def add_to_display(user_id: int, card_name: str):
     """
     Add a card to a user's display, if possible.
@@ -38,16 +38,27 @@ def add_to_display(user_id: int, card_name: str):
     check_user_exists(user_id)
 
     with db.engine.begin() as connection:
+        #check if card exists
+        card_id = connection.execute(
+            sqlalchemy.text("SELECT id FROM cards WHERE name = :card_name"),
+            {"card_name": card_name}
+        ).fetchone()
+
+        if card_id is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"'{card_name}' is not a valid card."
+            )
+
         # Check if the card is in user's collection
         in_collection = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT * FROM collection AS co 
-                INNER JOIN cards AS ca ON co.card_id = ca.id
-                WHERE ca.name = :card_name AND co.user_id = :user_id
+                SELECT * FROM collection
+                WHERE card_id = :card_id AND user_id = :user_id
                 """
             ),
-            {"card_name": card_name, "user_id": user_id}
+            {"card_id": card_id, "user_id": user_id}
         ).all()
 
         # Retrieve the current cards in user's display
@@ -98,6 +109,38 @@ def add_to_display(user_id: int, card_name: str):
             ),
             {"user_id": user_id, "card_id": card_id}
         )
+    end_time = time.time()  # End timer
+    elapsed_ms = (end_time - start_time) * 1000
+    print(f"Completed in {elapsed_ms:.2f} ms")
+
+@router.post("/{user_id}/display/remove/{card_name}", tags=["display"], status_code=status.HTTP_204_NO_CONTENT)
+def remove_from_display(user_id: int, card_name: str):
+    start_time = time.time()  # Start timer
+    # Verify the user exists
+    check_user_exists(user_id)
+
+    with db.engine.begin() as connection:
+        # Check if the card exists
+        card_id = connection.execute(
+            sqlalchemy.text("SELECT id FROM cards WHERE name = :card_name"),
+            {"card_name": card_name}
+        ).fetchone()
+
+        if card_id is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"'{card_name}' is not a valid card."
+            )
+
+        connection.execute(
+            sqlalchemy.text(
+                """
+                DELETE FROM display WHERE user_id = :user_id AND card_id = :card_id
+                """
+            ),
+            {"user_id": user_id, "card_id": card_id}
+        )
+    
     end_time = time.time()  # End timer
     elapsed_ms = (end_time - start_time) * 1000
     print(f"Completed in {elapsed_ms:.2f} ms")
