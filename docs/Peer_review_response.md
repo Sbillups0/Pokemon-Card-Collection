@@ -2,7 +2,7 @@
 
 ## `battle.py`
 
-### Review Comment
+### Review Comments
 
 - `.one()` can raise an exception if no result is found before checking for deck existence.
 - **Suggestion**: Use `.fetchone()` instead and check if the result is `None` before accessing the value.
@@ -17,7 +17,8 @@
 ### Review comments not considered
 
 - Not sure if this is intentional or not but I'm not able to view the battle and display endpoints on the render so I couldn’t test those endpoints
-  The endpoint is available and it is visible in render API Docs too.
+  
+    The endpoint is available and it is visible in render API Docs too.
 
 ## catalog.py
 
@@ -112,9 +113,11 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
   All transaction are performed using db.engine.begin(). This ensures that whenever a database transaction is started it happens in the same transaction. The entire sell_card_by_name is one in one single transaction.
 
 - Selling one card at a time was time-consuming, especially if I opened multiple packs. I think that having an easy function to sell duplicate cards or having some kind of bulk selling would be useful.
+
   This is a good ask and it is not addressed as it is a complex sequence
 
 - I would add rarities to the cards or show probabilities of pulling certain cards to add an element of excitement when getting rarer cards.
+
   This is a good ask. It is a complex flow and it was considered as part of complex flow exercise.
 
 ## display.py
@@ -127,24 +130,11 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
 - Didn’t seem like there was a schema for the display table in schema.sql and the alembic revisions so make sure to add that somewhere (But from the code for the endpoint I think you would just need to have a user_id and card_id column and the primary key would be the tuple of both of those values)
-
-### display.py has been updated for the above review comments
-
-### Review comments not considered
-
 - In display.py, there's no validation to prevent displaying the same card multiple times. A user could add the same card to their display multiple times. This doesn't make sense from a user interface perspective. The endpoint should check if a card is already being displayed before adding it again.
 - In the case where a user’s display is both full and they’re adding a card that is already in display it would be more useful to know that that card is already in the display than that their display is full so consider switching the ordering of the http exceptions
 
-  This is already taken care in the below code segment
+### display.py has been updated for the above review comments
 
-  ```
-  if len(in_collection) == 0:
-      raise HTTPException(status_code=404, detail="Card not in user's collection")
-  elif len(current_display) == 4:
-      raise HTTPException(status_code=403, detail="User's display is full")
-  elif card_name in current_display:
-      raise HTTPException(status_code=403, detail="Card is already in user's display")
-  ```
 
 ## packs.py
 
