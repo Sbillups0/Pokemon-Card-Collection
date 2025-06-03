@@ -57,7 +57,7 @@ def generate_a_bajillion_users():
             
             card_names = [card.name for card in cards_owned]
             if (len(cards_owned) >= 5):
-                rand_deck = random.choices(card_names, k=5)
+                rand_deck = random.sample(card_names, k=5)
                 deck_name = '_'.join(fake.words())
                 deck_id = conn.execute(sqlalchemy.text("""
                 INSERT INTO decks (user_id, deck_name) VALUES (:user_id, :deck_name) RETURNING id;
@@ -91,4 +91,13 @@ def generate_a_bajillion_users():
                     VALUES (:user_id, :card_id);
                     """), {"user_id": user_id, "card_id": display_card})
                 display_num -= 1
-    
+
+
+            for i in range(num_users):
+                if i % 1000 == 0:
+                    print(f"Created {i} users so far...")
+
+            print("Done creating all users!")
+
+# if __name__ == "__main__":
+#     generate_a_bajillion_users()
