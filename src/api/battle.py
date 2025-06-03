@@ -49,7 +49,7 @@ def battle(user_id: int, deck_name: str) -> BattleResponse:
         ).fetchone()
 
         if result is None:
-            raise HTTPException(status_code=404, detail="User's deck {deck_name} does not exist")
+            raise HTTPException(status_code=404, detail=f"User's deck {deck_name} does not exist")
 
         deck_id = result[0]
 
@@ -63,7 +63,7 @@ def battle(user_id: int, deck_name: str) -> BattleResponse:
         ).all()
 
     if not deck_contents:
-        raise HTTPException(status_code=400, detail="Deck {deck_name} contains no cards.")
+        raise HTTPException(status_code=400, detail=f"Deck {deck_name} contains no cards.")
 
     MAX_CARD_PRICE = 100
     value_sum = 0
