@@ -96,9 +96,6 @@ def add_to_display(user_id: int, card_name: str):
             detail=f"Card '{card_name}' is already in user {user_id}'s display."
         )
 
-    # Get card_id from collection query result
-    card_id = in_collection[0][1]
-
     # Insert the card into the user's display
     with db.engine.begin() as connection:
         connection.execute(

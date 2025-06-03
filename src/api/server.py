@@ -38,7 +38,7 @@ tags_metadata = [
     },
     {
         "name": "display",
-        "description": "Add a card from the user's collection to their personal display."
+        "description": "Add or remove a card from the user's collection to their personal display."
     }
 ]
 
