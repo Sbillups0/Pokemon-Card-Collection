@@ -127,24 +127,11 @@ Currently 6 packs are shown are the top 6 packs with maximum price. Even though 
 - Some of the error messages, like when there is an invalid card name, are not specific. The error messages could be clearer and more targeted to each endpoint.
 - The error messages across endpoints are inconsistent and not very detailed. For example:
 - Didn’t seem like there was a schema for the display table in schema.sql and the alembic revisions so make sure to add that somewhere (But from the code for the endpoint I think you would just need to have a user_id and card_id column and the primary key would be the tuple of both of those values)
-
-### display.py has been updated for the above review comments
-
-### Review comments not considered
-
 - In display.py, there's no validation to prevent displaying the same card multiple times. A user could add the same card to their display multiple times. This doesn't make sense from a user interface perspective. The endpoint should check if a card is already being displayed before adding it again.
 - In the case where a user’s display is both full and they’re adding a card that is already in display it would be more useful to know that that card is already in the display than that their display is full so consider switching the ordering of the http exceptions
 
-  This is already taken care in the below code segment
+### display.py has been updated for the above review comments
 
-  ```
-  if len(in_collection) == 0:
-      raise HTTPException(status_code=404, detail="Card not in user's collection")
-  elif len(current_display) == 4:
-      raise HTTPException(status_code=403, detail="User's display is full")
-  elif card_name in current_display:
-      raise HTTPException(status_code=403, detail="Card is already in user's display")
-  ```
 
 ## packs.py
 
