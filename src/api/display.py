@@ -39,16 +39,17 @@ def add_to_display(user_id: int, card_name: str):
 
     with db.engine.begin() as connection:
         #check if card exists
-        card_id = connection.execute(
+        card_id_obj = connection.execute(
             sqlalchemy.text("SELECT id FROM cards WHERE name = :card_name"),
             {"card_name": card_name}
         ).fetchone()
 
-        if card_id is None:
+        if card_id_obj is None:
             raise HTTPException(
                 status_code=404,
                 detail=f"'{card_name}' is not a valid card."
             )
+        card_id = card_id_obj[0]
 
         # Check if the card is in user's collection
         in_collection = connection.execute(
@@ -118,16 +119,17 @@ def remove_from_display(user_id: int, card_name: str):
 
     with db.engine.begin() as connection:
         # Check if the card exists
-        card_id = connection.execute(
+        card_id_obj = connection.execute(
             sqlalchemy.text("SELECT id FROM cards WHERE name = :card_name"),
             {"card_name": card_name}
         ).fetchone()
 
-        if card_id is None:
+        if card_id_obj is None:
             raise HTTPException(
                 status_code=404,
                 detail=f"'{card_name}' is not a valid card."
             )
+        card_id = card_id_obj[0]
 
         connection.execute(
             sqlalchemy.text(
