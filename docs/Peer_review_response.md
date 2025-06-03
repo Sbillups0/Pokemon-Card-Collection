@@ -2,7 +2,7 @@
 
 ## `battle.py`
 
-### Review Comment
+### Review Comments
 
 - `.one()` can raise an exception if no result is found before checking for deck existence.
 - **Suggestion**: Use `.fetchone()` instead and check if the result is `None` before accessing the value.
