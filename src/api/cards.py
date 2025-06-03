@@ -161,7 +161,7 @@ def sell_card_by_name(user_id: int, card_name: str, req: SellByNameRequest):
     
         # Check if card is in any decks owned by user (by card_id)
         card_in_deck = conn.execute(sqlalchemy.text("""
-            SELECT dc.id FROM deck_cards dc
+            SELECT d.id FROM deck_cards dc
             JOIN decks d ON dc.deck_id = d.id
             WHERE d.user_id = :user_id AND LOWER(dc.card_name) = LOWER(:card_name)
         """), {"user_id": user_id, "card_name": card_name}).fetchone()

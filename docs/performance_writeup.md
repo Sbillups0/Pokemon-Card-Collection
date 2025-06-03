@@ -39,9 +39,9 @@ Note: The ms fluctuated during testing, so I based the result on the average fro
 
 Longest Endpoint: Sell Card By Name
 
-### Performance tuning and adding indexes
+## Performance tuning and adding indexes
 
-## Based on Sell Card By Name
+### Based on Sell Card By Name
 
 ```SQL
 EXPLAIN ANALYZE SELECT id, price FROM cards WHERE LOWER(name) = LOWER('achang}T{N');
@@ -60,6 +60,17 @@ EXPLAIN ANALYZE SELECT d.id FROM deck_cards dc JOIN decks d ON dc.deck_id = d.id
 ```
 
 ![alt text](image-3.png)
+
+It appears that this is the cause for making the query slow.
+After adding an index
+
+```SQL
+CREATE INDEX idx_decks_user_id ON decks (user_id);
+```
+
+Execution Time is faster:
+
+![alt text](image-8.png)
 
 ```SQL
 EXPLAIN ANALYZE SELECT quantity FROM collection WHERE user_id = 2 AND card_id = 39;
@@ -91,3 +102,13 @@ UPDATE users SET coins = coins + 40 WHERE id = 2;
 ```
 
 ![alt text](image-7.png)
+
+Added Indexes:
+
+- CREATE INDEX idx_decks_user_id ON decks (user_id);
+- CREATE INDEX idx_cards_lower_name ON cards (LOWER(name));
+- CREATE INDEX idx_deck_cards_lower_name ON deck_cards (LOWER(card_name));
+
+Post-Index Performance:
+
+- Sell Card By Name: Improved from 129.30 ms → Completed in 26.45 ms (after adding indexes)
