@@ -17,7 +17,8 @@
 ### Review comments not considered
 
 - Not sure if this is intentional or not but I'm not able to view the battle and display endpoints on the render so I couldn’t test those endpoints
-  The endpoint is available and it is visible in render API Docs too.
+  
+    The endpoint is available and it is visible in render API Docs too.
 
 ## catalog.py
 
