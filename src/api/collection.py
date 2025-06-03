@@ -187,7 +187,7 @@ def get_full_collection(user_id: int):
     print(f"Completed in {elapsed_ms:.2f} ms")
     return CollectionResponse(Cards=collection, TotalValue=total_value)
 
-@router.get("quantity/{user_id}", tags=["collection"], response_model=CollectionResponse)
+@router.get("/quantity/{user_id}", tags=["collection"], response_model=CollectionResponse)
 def get_full_collection_by_quantity(user_id: int):
     """
     Retrieve the full card collection for a user.
