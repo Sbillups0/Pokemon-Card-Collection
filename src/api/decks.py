@@ -107,7 +107,13 @@ def create_deck(user_id: int, deck_name: str, cards: List[str]):
                 status_code=400,
                 detail=f"The following cards do not exist: {', '.join(invalid_cards)}."
             )
-
+        # Check if there are any duplicate cards in the requested cards
+        if len(set(cards)) < len(cards):
+            raise HTTPException(
+                status_code=408,
+                detail="Deck cannot contain duplicate cards."
+            )
+        
         # Insert the new deck
         deck_id_row = connection.execute(
             sqlalchemy.text("""
